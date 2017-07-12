@@ -2,7 +2,7 @@
     "name": "innmind/socket",
     "type": "library",
     "description": "Wrapper to PHP socket functions",
-    "keywords": ["ip", "address"],
+    "keywords": ["socket"],
     "homepage": "http://github.com/Innmind/Socket",
     "license": "MIT",
     "authors": [
