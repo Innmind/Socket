@@ -27,7 +27,7 @@ final class Unix implements Server
     public function __construct(Address $path)
     {
         $this->path = (string) $path;
-        $socket = @stream_socket_server('unix://' . $path);
+        $socket = @stream_socket_server('unix://'.$path);
 
         if ($socket === false) {
             $error = error_get_last();
