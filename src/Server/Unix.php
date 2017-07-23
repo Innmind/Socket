@@ -17,7 +17,6 @@ use Innmind\Stream\{
     Stream\Position\Mode,
     Exception\UnknownSize
 };
-use Innmind\Immutable\Str;
 
 final class Unix implements Server
 {
