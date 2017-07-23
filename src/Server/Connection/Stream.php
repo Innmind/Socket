@@ -103,4 +103,9 @@ final class Stream implements Connection
     {
         return $this->name;
     }
+
+    public function __destruct()
+    {
+        $this->close();
+    }
 }
