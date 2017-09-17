@@ -44,6 +44,17 @@ final class Internet implements Client
             );
         }
 
+        $socket = $transport
+            ->options()
+            ->reduce(
+                $socket,
+                static function($socket, string $key, $value) use ($transport) {
+                    stream_context_set_option($socket, (string) $transport, $key, $value);
+
+                    return $socket;
+                }
+            );
+
         $this->stream = new Stream\Bidirectional($socket);
         $this->name = stream_socket_get_name($socket, true);
     }

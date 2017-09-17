@@ -4,6 +4,7 @@ declare(strict_types = 1);
 namespace Tests\Innmind\Socket\Internet;
 
 use Innmind\Socket\Internet\Transport;
+use Innmind\Immutable\MapInterface;
 use PHPUnit\Framework\TestCase;
 
 class TransportTest extends TestCase
@@ -17,6 +18,24 @@ class TransportTest extends TestCase
 
         $this->assertInstanceOf(Transport::class, $transport);
         $this->assertSame($expected, (string) $transport);
+        $this->assertInstanceOf(MapInterface::class, $transport->options());
+        $this->assertSame('string', (string) $transport->options()->keyType());
+        $this->assertSame('variable', (string) $transport->options()->valueType());
+        $this->assertCount(0, $transport->options());
+    }
+
+    public function testOptions()
+    {
+        $transport = Transport::ssl();
+        $transport2 = $transport->withOption('foo', 42);
+
+        $this->assertInstanceOf(Transport::class, $transport2);
+        $this->assertNotSame($transport, $transport2);
+        $this->assertSame('ssl', (string) $transport);
+        $this->assertSame('ssl', (string) $transport2);
+        $this->assertCount(0, $transport->options());
+        $this->assertCount(1, $transport2->options());
+        $this->assertSame(42, $transport2->options()->get('foo'));
     }
 
     public function cases(): array
