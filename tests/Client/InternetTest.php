@@ -50,6 +50,16 @@ class InternetTest extends TestCase
         $this->assertInstanceOf(Client::class, $this->client);
     }
 
+    public function testClientWithOptions()
+    {
+        $client = new Internet(
+            Transport::tcp()->withOption('verify_host', true),
+            Url::fromString('//127.0.0.1:1234')->authority()
+        );
+
+        $this->assertInstanceOf(Client::class, $client);
+    }
+
     public function testResource()
     {
         $this->assertTrue(is_resource($this->client->resource()));
