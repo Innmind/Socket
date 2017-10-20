@@ -144,4 +144,13 @@ class UnixTest extends TestCase
         unset($this->client);
         $this->assertFalse(is_resource($resource));
     }
+
+    public function testClosedWhenServerConnectionClosed()
+    {
+        $this->assertFalse($this->client->closed());
+        $connection = $this->server->accept();
+        $this->assertFalse($this->client->closed());
+        $connection->close();
+        $this->assertTrue($this->client->closed());
+    }
 }

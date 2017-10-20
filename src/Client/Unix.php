@@ -60,6 +60,14 @@ final class Unix implements Client
 
     public function closed(): bool
     {
+        if ($this->stream->closed()) {
+            return true;
+        }
+
+        if (feof($this->stream->resource())) {
+            $this->stream->close();
+        }
+
         return $this->stream->closed();
     }
 
