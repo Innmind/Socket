@@ -36,7 +36,7 @@ class InternetTest extends TestCase
 
     public function tearDown()
     {
-        unset($this->server);
+        $this->server->close();
     }
 
     public function testInterface()
@@ -108,14 +108,5 @@ class InternetTest extends TestCase
         } catch (UnknownSize $e) {
             $this->assertTrue(true);
         }
-    }
-
-    public function testDestruct()
-    {
-        $resource = $this->server->resource();
-
-        unset($this->server);
-
-        $this->assertFalse(is_resource($resource));
     }
 }

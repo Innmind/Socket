@@ -23,6 +23,7 @@ class UnixTest extends TestCase
 {
     public function testInterface()
     {
+        @unlink('/tmp/foo.sock');
         $unix = new Unix(new Address('/tmp/foo'));
 
         $this->assertInstanceOf(Server::class, $unix);
@@ -30,6 +31,7 @@ class UnixTest extends TestCase
 
     public function testAccept()
     {
+        @unlink('/tmp/unix.sock');
         $unix = new Unix(new Address('/tmp/unix'));
         (new ServerFactory)
             ->make()
@@ -50,6 +52,7 @@ class UnixTest extends TestCase
 
     public function testRecoverableWhenSockFileExisting()
     {
+        @unlink('/tmp/foo.sock');
         $socket = stream_socket_server('unix:///tmp/foo.sock');
         fclose($socket);
 
@@ -118,13 +121,5 @@ class UnixTest extends TestCase
         } catch (UnknownSize $e) {
             $this->assertTrue(true);
         }
-    }
-
-    public function testDestruct()
-    {
-        $unix = Unix::recoverable(new Address('/tmp/foo'));
-
-        unset($unix);
-        $this->assertFalse(file_exists('/tmp/foo.sock'));
     }
 }

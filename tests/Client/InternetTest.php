@@ -41,8 +41,8 @@ class InternetTest extends TestCase
 
     public function tearDown()
     {
-        unset($this->client);
-        unset($this->server);
+        $this->client->close();
+        $this->server->close();
     }
 
     public function testInterface()
@@ -157,14 +157,6 @@ class InternetTest extends TestCase
     public function testStringCast()
     {
         $this->assertSame('127.0.0.1:1234', (string) $this->client);
-    }
-
-    public function testDestruct()
-    {
-        $resource = $this->client->resource();
-
-        unset($this->client);
-        $this->assertFalse(is_resource($resource));
     }
 
     public function testClosedWhenServerConnectionClosed()

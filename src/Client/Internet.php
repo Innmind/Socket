@@ -141,9 +141,4 @@ final class Internet implements Client
     {
         return $this->name;
     }
-
-    public function __destruct()
-    {
-        $this->close();
-    }
 }

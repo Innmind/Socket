@@ -115,9 +115,4 @@ final class Internet implements Server
     {
         return false;
     }
-
-    public function __destruct()
-    {
-        $this->close();
-    }
 }
