@@ -125,9 +125,4 @@ final class Unix implements Server
     {
         return false;
     }
-
-    public function __destruct()
-    {
-        $this->close();
-    }
 }
