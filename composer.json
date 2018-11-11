@@ -15,7 +15,7 @@
         "issues": "http://github.com/Innmind/Socket/issues"
     },
     "require": {
-        "php": "~7.1",
+        "php": "~7.2",
         "innmind/stream": "^1.1",
         "innmind/immutable": "^2.10",
         "innmind/event-bus": "^3.0",
