@@ -13,7 +13,7 @@ use Innmind\Socket\{
     Event\DataReceived,
     Address\Unix as Address
 };
-use Innmind\EventBus\EventBusInterface;
+use Innmind\EventBus\EventBus;
 use Innmind\TimeContinuum\ElapsedPeriod;
 use Innmind\Server\Control\{
     ServerFactory,
@@ -26,7 +26,7 @@ class LoopTest extends TestCase
     public function testInvokation()
     {
         $loop = new Loop(
-            $bus = $this->createMock(EventBusInterface::class),
+            $bus = $this->createMock(EventBus::class),
             new ElapsedPeriod(0),
             new class implements Strategy {
                 private $clientCalled = false;
@@ -54,20 +54,20 @@ class LoopTest extends TestCase
 
         $bus
             ->expects($this->at(0))
-            ->method('dispatch')
+            ->method('__invoke')
             ->with($this->callback(static function(ConnectionReceived $event): bool {
                 return $event->connection() instanceof Connection;
             }));
         $bus
             ->expects($this->at(1))
-            ->method('dispatch')
+            ->method('__invoke')
             ->with($this->callback(static function(DataReceived $event): bool {
                 return $event->source() instanceof Connection &&
                     (string) $event->data() === 'woop woop!';
             }));
         $bus
             ->expects($this->at(2))
-            ->method('dispatch')
+            ->method('__invoke')
             ->with($this->callback(static function(ConnectionClosed $event): bool {
                 return $event->connection()->closed();
             }));

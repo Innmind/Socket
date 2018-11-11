@@ -12,21 +12,21 @@ use Innmind\Socket\{
     Loop\Strategy\Infinite
 };
 use Innmind\Stream\Select;
-use Innmind\EventBus\EventBusInterface;
+use Innmind\EventBus\EventBus;
 use Innmind\TimeContinuum\ElapsedPeriod;
 
 final class Loop
 {
-    private $bus;
+    private $dispatch;
     private $timeout;
     private $strategy;
 
     public function __construct(
-        EventBusInterface $bus,
+        EventBus $dispatch,
         ElapsedPeriod $timeout,
         Strategy $strategy = null
     ) {
-        $this->bus = $bus;
+        $this->dispatch = $dispatch;
         $this->timeout = $timeout;
         $this->strategy = $strategy ?? new Infinite;
     }
@@ -42,7 +42,7 @@ final class Loop
                 if ($sockets->get('read')->contains($server)) {
                     $connection = $server->accept();
                     $select = $select->forRead($connection);
-                    $this->bus->dispatch(new ConnectionReceived($connection));
+                    ($this->dispatch)(new ConnectionReceived($connection));
                 }
 
                 $sockets
@@ -53,20 +53,20 @@ final class Loop
 
                         if ($text->length() === 0) {
                             $select = $select->unwatch($connection);
-                            $this->bus->dispatch(new ConnectionClosed(
+                            ($this->dispatch)(new ConnectionClosed(
                                 $connection->close()
                             ));
 
                             return;
                         }
 
-                        $this->bus->dispatch(new DataReceived(
+                        ($this->dispatch)(new DataReceived(
                             $connection,
                             $text
                         ));
                     });
             } catch (\Throwable $e) {
-                $this->bus->dispatch($e);
+                ($this->dispatch)($e);
             }
 
         } while (($this->strategy)());
