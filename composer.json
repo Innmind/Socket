@@ -16,7 +16,7 @@
     },
     "require": {
         "php": "~7.2",
-        "innmind/stream": "^1.1",
+        "innmind/stream": "^1.5",
         "innmind/immutable": "^2.10",
         "innmind/event-bus": "^3.0",
         "innmind/ip": "^1.0",
