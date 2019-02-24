@@ -7,7 +7,8 @@ use Innmind\Socket\{
     Client\Unix,
     Client,
     Address\Unix as Address,
-    Server\Unix as Server
+    Server\Unix as Server,
+    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Position,
@@ -21,13 +22,13 @@ class UnixTest extends TestCase
     private $client;
     private $server;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->server = Server::recoverable($address = new Address('/tmp/foo'));
         $this->client = new Unix($address);
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->client->close();
         $this->server->close();
@@ -57,19 +58,17 @@ class UnixTest extends TestCase
         $this->assertSame(0, $this->client->position()->toInt());
     }
 
-    /**
-     * @expectedException Innmind\Socket\Exception\SocketNotSeekable
-     */
     public function testThrowWhenSeeking()
     {
+        $this->expectException(SocketNotSeekable::class);
+
         $this->client->seek(new Position(0));
     }
 
-    /**
-     * @expectedException Innmind\Socket\Exception\SocketNotSeekable
-     */
     public function testThrowWhenRewinding()
     {
+        $this->expectException(SocketNotSeekable::class);
+
         $this->client->rewind();
     }
 

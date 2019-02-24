@@ -7,7 +7,8 @@ use Innmind\Socket\{
     Server\Connection\Stream,
     Server\Connection,
     Server\Unix,
-    Address\Unix as Address
+    Address\Unix as Address,
+    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Position,
@@ -20,7 +21,7 @@ class StreamTest extends TestCase
 {
     private $stream;
 
-    public function setUp()
+    public function setUp(): void
     {
         $resource = tmpfile();
         fwrite($resource, "foo\nbar");
@@ -53,19 +54,17 @@ class StreamTest extends TestCase
         $this->assertSame(0, $this->stream->position()->toInt());
     }
 
-    /**
-     * @expectedException Innmind\Socket\Exception\SocketNotSeekable
-     */
     public function testThrowWhenSeeking()
     {
+        $this->expectException(SocketNotSeekable::class);
+
         $this->stream->seek(new Position(0));
     }
 
-    /**
-     * @expectedException Innmind\Socket\Exception\SocketNotSeekable
-     */
     public function testThrowWhenRewinding()
     {
+        $this->expectException(SocketNotSeekable::class);
+
         $this->stream->rewind();
     }
 
