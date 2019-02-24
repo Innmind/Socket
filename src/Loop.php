@@ -15,6 +15,9 @@ use Innmind\Stream\Select;
 use Innmind\EventBus\EventBus;
 use Innmind\TimeContinuum\ElapsedPeriod;
 
+/**
+ * @deprecated Use Serve instead
+ */
 final class Loop
 {
     private $dispatch;
