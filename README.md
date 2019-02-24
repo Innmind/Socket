@@ -1,10 +1,10 @@
 # Socket
 
-| `master` | `develop` |
-|----------|-----------|
-| [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/Socket/badges/quality-score.png?b=master)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=master) | [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/Socket/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=develop) |
-| [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/Socket/badges/coverage.png?b=master)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=master) | [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/Socket/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=develop) |
-| [![Build Status](https://scrutinizer-ci.com/g/Innmind/Socket/badges/build.png?b=master)](https://scrutinizer-ci.com/g/Innmind/Socket/build-status/master) | [![Build Status](https://scrutinizer-ci.com/g/Innmind/Socket/badges/build.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/build-status/develop) |
+| `develop` |
+|-----------|
+| [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/Socket/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=develop) |
+| [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/Socket/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=develop) |
+| [![Build Status](https://scrutinizer-ci.com/g/Innmind/Socket/badges/build.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/build-status/develop) |
 
 Layer on top of [`innmind/stream`](https://github.com/Innmind/Stream) to specifically work with sockets.
 
@@ -23,25 +23,26 @@ Server example:
 ```php
 use Innmind\Socket\{
     Server\Unix,
-    Loop,
+    Serve,
     Address\Unix as Address
 };
+use Innmind\Stream\Watch;
 use Innmind\EventBus\EventBus;
 use Innmind\TimeContinuum\ElapsedPeriod;
 
 $server = Unix::recoverable(new Address('/tmp/my-socket'));
-$loop = new Loop(
+$serve = new Serve(
     new EventBus(/* see library for documentation */),
-    new ElapsedPeriod(1000) // 1 minute
+    /* an instance of Watch */
 );
-$loop($server);
+$serve($server);
 ```
 
-The example above creates a socket at `/tmp/my-socket.sock` and will wait indefinitely (with a maximum of 1 minute between each loop iteration). The loop wil dispatch those events as soon as the data arrive:
+The example above creates a socket at `/tmp/my-socket.sock` and will wait indefinitely. The loop will dispatch those events as soon as the data arrive:
 
 * [`ConnectionReceived`](src/Event/ConnectionReceived.php)
 * [`ConnectionClosed`](src/Event/ConnectionClosed.php)
-* [`DataReceived`](src/Event/DataReceived.php)
+* [`ConnectionReady`](src/Event/ConnectionReady.php)
 
 Client example:
 
@@ -140,9 +141,9 @@ Then build your loop with your strategy:
 ```php
 use Innmind\TimeContinuum\TimeContinuum\Earth;
 
-$loop = new Loop(
+$loop = new Serve(
     new EventBus(/**/),
-    new ElapsedPeriod(1000),
+    /* instance of Watch */,
     new RunForAnHour(new Earth)
 );
 ```

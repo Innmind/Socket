@@ -6,6 +6,9 @@ namespace Innmind\Socket\Event;
 use Innmind\Socket\Server\Connection;
 use Innmind\Immutable\Str;
 
+/**
+ * @deprecated
+ */
 final class DataReceived
 {
     private $connection;

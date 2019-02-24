@@ -7,7 +7,8 @@ use Innmind\Socket\{
     Server\Internet,
     Server,
     Server\Connection,
-    Internet\Transport
+    Internet\Transport,
+    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Position,
@@ -25,7 +26,7 @@ class InternetTest extends TestCase
 {
     private $server;
 
-    public function setUp()
+    public function setUp(): void
     {
         $this->server = new Internet(
             Transport::tcp(),
@@ -34,7 +35,7 @@ class InternetTest extends TestCase
         );
     }
 
-    public function tearDown()
+    public function tearDown(): void
     {
         $this->server->close();
     }
@@ -77,19 +78,17 @@ class InternetTest extends TestCase
         $this->assertSame(0, $this->server->position()->toInt());
     }
 
-    /**
-     * @expectedException Innmind\Socket\Exception\SocketNotSeekable
-     */
     public function testThrowWhenSeeking()
     {
+        $this->expectException(SocketNotSeekable::class);
+
         $this->server->seek(new Position(0));
     }
 
-    /**
-     * @expectedException Innmind\Socket\Exception\SocketNotSeekable
-     */
     public function testThrowWhenRewinding()
     {
+        $this->expectException(SocketNotSeekable::class);
+
         $this->server->rewind();
     }
 
