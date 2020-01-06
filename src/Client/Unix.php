@@ -62,7 +62,7 @@ final class Unix implements Client
             return true;
         }
 
-        if (\feof($this->stream->resource())) {
+        if ($this->stream->end()) {
             $this->stream->close();
         }
 
