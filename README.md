@@ -2,9 +2,8 @@
 
 | `develop` |
 |-----------|
-| [![Scrutinizer Code Quality](https://scrutinizer-ci.com/g/Innmind/Socket/badges/quality-score.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=develop) |
-| [![Code Coverage](https://scrutinizer-ci.com/g/Innmind/Socket/badges/coverage.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/?branch=develop) |
-| [![Build Status](https://scrutinizer-ci.com/g/Innmind/Socket/badges/build.png?b=develop)](https://scrutinizer-ci.com/g/Innmind/Socket/build-status/develop) |
+| [![codecov](https://codecov.io/gh/Innmind/Socket/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/Socket) |
+| [![Build Status](https://github.com/Innmind/Socket/workflows/CI/badge.svg)](https://github.com/Innmind/Socket/actions?query=workflow%3ACI) |
 
 Layer on top of [`innmind/stream`](https://github.com/Innmind/Stream) to specifically work with sockets.
 
