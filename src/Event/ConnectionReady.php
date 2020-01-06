@@ -7,7 +7,7 @@ use Innmind\Socket\Server\Connection;
 
 final class ConnectionReady
 {
-    private $connection;
+    private Connection $connection;
 
     public function __construct(Connection $connection)
     {

@@ -9,16 +9,16 @@ use Innmind\Socket\{
     Event\ConnectionClosed,
     Event\ConnectionReady,
     Loop\Strategy,
-    Loop\Strategy\Infinite
+    Loop\Strategy\Infinite,
 };
 use Innmind\Stream\Watch;
 use Innmind\EventBus\EventBus;
 
 final class Serve
 {
-    private $dispatch;
-    private $watch;
-    private $strategy;
+    private EventBus $dispatch;
+    private Watch $watch;
+    private Strategy $strategy;
 
     public function __construct(
         EventBus $dispatch,
@@ -44,6 +44,7 @@ final class Serve
                     ($this->dispatch)(new ConnectionReceived($connection));
                 }
 
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $watch = $ready
                     ->toRead()
                     ->remove($server)

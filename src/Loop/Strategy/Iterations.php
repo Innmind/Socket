@@ -7,7 +7,7 @@ use Innmind\Socket\Loop\Strategy;
 
 final class Iterations implements Strategy
 {
-    private $iterations;
+    private int $iterations;
 
     public function __construct(int $iterations)
     {

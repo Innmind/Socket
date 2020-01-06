@@ -12,12 +12,10 @@ use Innmind\Socket\{
 };
 use Innmind\Stream\{
     Stream\Position,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
-use Innmind\Server\Control\{
-    ServerFactory,
-    Server\Command
-};
+use Innmind\Url\Path;
+use Symfony\Component\Process\Process;
 use PHPUnit\Framework\TestCase;
 
 class UnixTest extends TestCase
@@ -25,7 +23,7 @@ class UnixTest extends TestCase
     public function testInterface()
     {
         @unlink('/tmp/foo.sock');
-        $unix = new Unix(new Address('/tmp/foo'));
+        $unix = new Unix(new Address(Path::of('/tmp/foo')));
 
         $this->assertInstanceOf(Server::class, $unix);
     }
@@ -33,22 +31,16 @@ class UnixTest extends TestCase
     public function testAccept()
     {
         @unlink('/tmp/unix.sock');
-        $unix = new Unix(new Address('/tmp/unix'));
-        (new ServerFactory)
-            ->make()
-            ->processes()
-            ->execute(
-                Command::foreground('php')
-                    ->withArgument('fixtures/unixClient.php')
-            )
-            ->wait();
+        $unix = new Unix(new Address(Path::of('/tmp/unix')));
+        $process = new Process(['php', 'fixtures/unixClient.php']);
+        $process->run();
 
         $this->assertInstanceOf(Connection::class, $unix->accept());
     }
 
     public function testRecoverable()
     {
-        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address('/tmp/foo')));
+        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address(Path::of('/tmp/foo'))));
     }
 
     public function testRecoverableWhenSockFileExisting()
@@ -57,12 +49,12 @@ class UnixTest extends TestCase
         $socket = stream_socket_server('unix:///tmp/foo.sock');
         fclose($socket);
 
-        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address('/tmp/foo')));
+        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address(Path::of('/tmp/foo'))));
     }
 
     public function testResource()
     {
-        $unix = Unix::recoverable(new Address('/tmp/foo'));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
         $this->assertTrue(is_resource($unix->resource()));
         $this->assertSame('stream', get_resource_type($unix->resource()));
@@ -70,18 +62,18 @@ class UnixTest extends TestCase
 
     public function testClose()
     {
-        $unix = Unix::recoverable(new Address('/tmp/foo'));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
         $this->assertFalse($unix->closed());
         $this->assertTrue(file_exists('/tmp/foo.sock'));
-        $this->assertSame($unix, $unix->close());
+        $this->assertNull($unix->close());
         $this->assertTrue($unix->closed());
         $this->assertFalse(file_exists('/tmp/foo.sock'));
     }
 
     public function testPosition()
     {
-        $unix = Unix::recoverable(new Address('/tmp/foo'));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
         $this->assertInstanceOf(Position::class, $unix->position());
         $this->assertSame(0, $unix->position()->toInt());
@@ -91,26 +83,26 @@ class UnixTest extends TestCase
     {
         $this->expectException(SocketNotSeekable::class);
 
-        Unix::recoverable(new Address('/tmp/foo'))->seek(new Position(0));
+        Unix::recoverable(new Address(Path::of('/tmp/foo')))->seek(new Position(0));
     }
 
     public function testThrowWhenRewinding()
     {
         $this->expectException(SocketNotSeekable::class);
 
-        Unix::recoverable(new Address('/tmp/foo'))->rewind();
+        Unix::recoverable(new Address(Path::of('/tmp/foo')))->rewind();
     }
 
     public function testEnd()
     {
-        $unix = Unix::recoverable(new Address('/tmp/foo'));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
         $this->assertFalse($unix->end());
     }
 
     public function testSize()
     {
-        $unix = Unix::recoverable(new Address('/tmp/foo'));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
         $this->assertFalse($unix->knowsSize());
 

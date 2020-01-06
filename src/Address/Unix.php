@@ -4,14 +4,16 @@ declare(strict_types = 1);
 namespace Innmind\Socket\Address;
 
 use Innmind\Socket\Exception\DirectoryNotFound;
+use Innmind\Url\Path;
 
 final class Unix
 {
-    private $path;
+    private string $path;
 
-    public function __construct(string $path)
+    public function __construct(Path $path)
     {
-        $parts = pathinfo($path);
+        /** @var array{dirname: string, filename: string} */
+        $parts = pathinfo($path->toString());
 
         if (!is_dir($parts['dirname'])) {
             throw new DirectoryNotFound;
@@ -20,11 +22,16 @@ final class Unix
         $this->path = sprintf(
             '%s/%s.sock',
             $parts['dirname'],
-            $parts['filename']
+            $parts['filename'],
         );
     }
 
-    public function __toString(): string
+    public static function of(string $path): self
+    {
+        return new self(Path::of($path));
+    }
+
+    public function toString(): string
     {
         return $this->path;
     }

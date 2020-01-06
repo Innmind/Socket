@@ -16,10 +16,7 @@ use Innmind\Stream\{
 };
 use Innmind\IP\IPv4;
 use Innmind\Url\Authority\Port;
-use Innmind\Server\Control\{
-    ServerFactory,
-    Server\Command
-};
+use Symfony\Component\Process\Process;
 use PHPUnit\Framework\TestCase;
 
 class InternetTest extends TestCase
@@ -30,8 +27,8 @@ class InternetTest extends TestCase
     {
         $this->server = new Internet(
             Transport::tcp(),
-            new IPv4('127.0.0.1'),
-            new Port(1234)
+            IPv4::of('127.0.0.1'),
+            Port::of(1234)
         );
     }
 
@@ -47,14 +44,8 @@ class InternetTest extends TestCase
 
     public function testAccept()
     {
-        (new ServerFactory)
-            ->make()
-            ->processes()
-            ->execute(
-                Command::foreground('php')
-                    ->withArgument('fixtures/tcpClient.php')
-            )
-            ->wait();
+        $process = new Process(['php', 'fixtures/tcpClient.php']);
+        $process->run();
 
         $this->assertInstanceOf(Connection::class, $this->server->accept());
     }
@@ -68,7 +59,7 @@ class InternetTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->server->closed());
-        $this->assertSame($this->server, $this->server->close());
+        $this->assertNull($this->server->close());
         $this->assertTrue($this->server->closed());
     }
 

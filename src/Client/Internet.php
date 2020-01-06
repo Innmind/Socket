@@ -7,7 +7,7 @@ use Innmind\Socket\{
     Client,
     Internet\Transport,
     Exception\FailedToOpenSocket,
-    Exception\SocketNotSeekable
+    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream,
@@ -15,48 +15,54 @@ use Innmind\Stream\{
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
-use Innmind\Url\AuthorityInterface;
+use Innmind\Url\Authority;
 use Innmind\Immutable\Str;
 
 final class Internet implements Client
 {
-    private $stream;
-    private $name;
+    private Stream\Bidirectional $stream;
+    private string $name;
 
     public function __construct(
         Transport $transport,
-        AuthorityInterface $authority
+        Authority $authority
     ) {
-        $socket = @stream_socket_client(sprintf(
+        $socket = @\stream_socket_client(\sprintf(
             '%s://%s',
-            $transport,
-            $authority
+            $transport->toString(),
+            $authority->toString(),
         ));
 
         if ($socket === false) {
-            $error = error_get_last();
+            /** @var array{file: string, line: int, message: string, type: int} */
+            $error = \error_get_last();
 
             throw new FailedToOpenSocket(
                 $error['message'],
-                $error['type']
+                $error['type'],
             );
         }
 
+        /**
+         * @psalm-suppress MissingClosureParamType
+         * @psalm-suppress MissingClosureReturnType
+         * @var resource
+         */
         $socket = $transport
             ->options()
             ->reduce(
                 $socket,
                 static function($socket, string $key, $value) use ($transport) {
-                    stream_context_set_option($socket, (string) $transport, $key, $value);
+                    \stream_context_set_option($socket, $transport->toString(), $key, $value);
 
                     return $socket;
                 }
             );
 
         $this->stream = new Stream\Bidirectional($socket);
-        $this->name = stream_socket_get_name($socket, true);
+        $this->name = \stream_socket_get_name($socket, true);
     }
 
     /**
@@ -67,11 +73,9 @@ final class Internet implements Client
         return $this->stream->resource();
     }
 
-    public function close(): Stream
+    public function close(): void
     {
         $this->stream->close();
-
-        return $this;
     }
 
     public function closed(): bool
@@ -80,7 +84,7 @@ final class Internet implements Client
             return true;
         }
 
-        if (feof($this->stream->resource())) {
+        if ($this->stream->end()) {
             $this->stream->close();
         }
 
@@ -92,12 +96,12 @@ final class Internet implements Client
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): Stream
+    public function seek(Position $position, Mode $mode = null): void
     {
         throw new SocketNotSeekable;
     }
 
-    public function rewind(): Stream
+    public function rewind(): void
     {
         throw new SocketNotSeekable;
     }
@@ -130,14 +134,12 @@ final class Internet implements Client
         return $this->stream->readLine();
     }
 
-    public function write(Str $data): Writable
+    public function write(Str $data): void
     {
         $this->stream->write($data);
-
-        return $this;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->name;
     }

@@ -4,26 +4,26 @@ declare(strict_types = 1);
 namespace Innmind\Socket\Internet;
 
 use Innmind\Socket\Exception\TransportNotSupportedByTheSystem;
-use Innmind\Immutable\{
-    MapInterface,
-    Map
-};
+use Innmind\Immutable\Map;
 
 final class Transport
 {
-    private $transport;
-    private $options;
+    private string $transport;
+    /** @var Map<string, scalar|array> */
+    private Map $options;
 
     private function __construct(string $transport)
     {
-        $allowed = stream_get_transports();
+        /** @var list<string> */
+        $allowed = \stream_get_transports();
 
-        if (!in_array($transport, $allowed, true)) {
+        if (!\in_array($transport, $allowed, true)) {
             throw new TransportNotSupportedByTheSystem($transport, ...$allowed);
         }
 
         $this->transport = $transport;
-        $this->options = new Map('string', 'variable');
+        /** @var Map<string, scalar|array> */
+        $this->options = Map::of('string', 'scalar|array');
     }
 
     public static function tcp(): self
@@ -34,11 +34,6 @@ final class Transport
     public static function ssl(): self
     {
         return new self('ssl');
-    }
-
-    public static function sslv3(): self
-    {
-        return new self('sslv3');
     }
 
     public static function tls(): self
@@ -61,23 +56,26 @@ final class Transport
         return new self('tlsv1.2');
     }
 
+    /**
+     * @param scalar|array $value
+     */
     public function withOption(string $key, $value): self
     {
         $self = clone $this;
-        $self->options = $this->options->put($key, $value);
+        $self->options = ($this->options)($key, $value);
 
         return $self;
     }
 
     /**
-     * @return MapInterface<string, variable>
+     * @return Map<string, scalar|array>
      */
-    public function options(): MapInterface
+    public function options(): Map
     {
         return $this->options;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->transport;
     }
