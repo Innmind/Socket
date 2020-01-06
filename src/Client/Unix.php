@@ -31,6 +31,7 @@ final class Unix implements Client
         $socket = @\stream_socket_client('unix://'.$path->toString());
 
         if ($socket === false) {
+            /** @var array{file: string, line: int, message: string, type: int} */
             $error = \error_get_last();
 
             throw new FailedToOpenSocket(

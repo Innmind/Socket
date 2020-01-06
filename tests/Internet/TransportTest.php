@@ -20,7 +20,7 @@ class TransportTest extends TestCase
         $this->assertSame($expected, $transport->toString());
         $this->assertInstanceOf(Map::class, $transport->options());
         $this->assertSame('string', $transport->options()->keyType());
-        $this->assertSame('variable', $transport->options()->valueType());
+        $this->assertSame('scalar|array', $transport->options()->valueType());
         $this->assertCount(0, $transport->options());
     }
 

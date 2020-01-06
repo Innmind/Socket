@@ -21,6 +21,9 @@ final class Stream implements Connection
     private Bidirectional $stream;
     private string $name;
 
+    /**
+     * @param resource $resource
+     */
     public function __construct($resource)
     {
         $this->stream = new Bidirectional($resource);

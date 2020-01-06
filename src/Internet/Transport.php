@@ -9,10 +9,12 @@ use Innmind\Immutable\Map;
 final class Transport
 {
     private string $transport;
+    /** @var Map<string, scalar|array> */
     private Map $options;
 
     private function __construct(string $transport)
     {
+        /** @var list<string> */
         $allowed = \stream_get_transports();
 
         if (!\in_array($transport, $allowed, true)) {
@@ -20,7 +22,8 @@ final class Transport
         }
 
         $this->transport = $transport;
-        $this->options = Map::of('string', 'variable');
+        /** @var Map<string, scalar|array> */
+        $this->options = Map::of('string', 'scalar|array');
     }
 
     public static function tcp(): self
@@ -58,6 +61,9 @@ final class Transport
         return new self('tlsv1.2');
     }
 
+    /**
+     * @param scalar|array $value
+     */
     public function withOption(string $key, $value): self
     {
         $self = clone $this;
@@ -67,7 +73,7 @@ final class Transport
     }
 
     /**
-     * @return Map<string, variable>
+     * @return Map<string, scalar|array>
      */
     public function options(): Map
     {

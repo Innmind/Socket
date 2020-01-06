@@ -44,6 +44,7 @@ final class Serve
                     ($this->dispatch)(new ConnectionReceived($connection));
                 }
 
+                /** @psalm-suppress ArgumentTypeCoercion */
                 $watch = $ready
                     ->toRead()
                     ->remove($server)

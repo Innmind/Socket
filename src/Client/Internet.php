@@ -36,6 +36,7 @@ final class Internet implements Client
         ));
 
         if ($socket === false) {
+            /** @var array{file: string, line: int, message: string, type: int} */
             $error = \error_get_last();
 
             throw new FailedToOpenSocket(
@@ -44,6 +45,11 @@ final class Internet implements Client
             );
         }
 
+        /**
+         * @psalm-suppress MissingClosureParamType
+         * @psalm-suppress MissingClosureReturnType
+         * @var resource
+         */
         $socket = $transport
             ->options()
             ->reduce(

@@ -39,6 +39,7 @@ final class Internet implements Server
         ));
 
         if ($socket === false) {
+            /** @var array{file: string, line: int, message: string, type: int} */
             $error = \error_get_last();
 
             throw new FailedToOpenSocket(
@@ -56,6 +57,7 @@ final class Internet implements Server
         $socket = @\stream_socket_accept($this->resource());
 
         if ($socket === false) {
+            /** @var array{file: string, line: int, message: string, type: int} */
             $error = \error_get_last();
 
             throw new FailedAcceptingIncomingConnection(
