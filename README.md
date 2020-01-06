@@ -23,13 +23,12 @@ Server example:
 use Innmind\Socket\{
     Server\Unix,
     Serve,
-    Address\Unix as Address
+    Address\Unix as Address,
 };
 use Innmind\Stream\Watch;
 use Innmind\EventBus\EventBus;
-use Innmind\TimeContinuum\ElapsedPeriod;
 
-$server = Unix::recoverable(new Address('/tmp/my-socket'));
+$server = Unix::recoverable(Address::of('/tmp/my-socket'));
 $serve = new Serve(
     new EventBus(/* see library for documentation */),
     /* an instance of Watch */
@@ -48,11 +47,11 @@ Client example:
 ```php
 use Innmind\Socket\{
     Client\Unix,
-    Address\Unix as Address
+    Address\Unix as Address,
 };
 
-$client = new Client(new Address('/tmp/my-socket'));
-$client->write(new Str('hello there!'));
+$client = new Client(Address::of('/tmp/my-socket'));
+$client->write(Str::of('hello there!'));
 ```
 
 This will simply connect to the socket server declared above and will send the data `hello there!`.
@@ -66,15 +65,15 @@ Same logic as the unix socket except the way you build the server:
 ```php
 use Innmind\Socket\{
     Server\Internet,
-    Internet\Transport
+    Internet\Transport,
 };
 use Innmind\IP\IPv4;
 use Innmind\Url\Authority\Port;
 
 $server = new Internet(
     Transport::tcp(),
-    new IPv4('127.0.0.1'),
-    new Port(80)
+    IPv4::of('127.0.0.1'),
+    Port::of(80),
 );
 //this will listen for incoming tcp connection on the port 80
 ```
@@ -84,28 +83,28 @@ and the client:
 ```php
 use Innmind\Socket\{
     Client\Internet,
-    Internet\Transport
+    Internet\Transport,
 };
 use Innmind\Url\Url;
 
 $client = new Client(
     Transport::tcp(),
-    Url::fromString('//127.0.0.1:80')->authority()
+    Url::of('//127.0.0.1:80')->authority(),
 );
 //this will connect to a local socket on port 80
 ```
 
 ### Loop lifetime
 
-By default the [`Loop`](src/Loop.php) use the [`Infinite`](src/Loop/Strategy/Infinite.php) strategy but you can easily build your own.
+By default the [`Serve`](src/Serve.php) use the [`Infinite`](src/Loop/Strategy/Infinite.php) strategy but you can easily build your own.
 
 Let's say you don't want your loop to run more than an hour, you need to create a strategy like this:
 
 ```php
 use Innmind\Socket\Loop\Strategy;
 use Innmind\TimeContinuum\{
-    TimeContinuumInterface,
-    ElapsedPeriod
+    Clock,
+    Earth\ElapsedPeriod,
 };
 
 final class RunForAnHour implements Strategy
@@ -114,7 +113,7 @@ final class RunForAnHour implements Strategy
     private $clock;
     private $threshold;
 
-    public function __construct(TimeContinuumInterface $clock)
+    public function __construct(Clock $clock)
     {
         $this->start = $clock->now();
         $this->clock = $clock;
@@ -138,11 +137,11 @@ final class RunForAnHour implements Strategy
 Then build your loop with your strategy:
 
 ```php
-use Innmind\TimeContinuum\TimeContinuum\Earth;
+use Innmind\TimeContinuum\Earth\Clock;
 
 $loop = new Serve(
     new EventBus(/**/),
     /* instance of Watch */,
-    new RunForAnHour(new Earth)
+    new RunForAnHour(new Clock)
 );
 ```
