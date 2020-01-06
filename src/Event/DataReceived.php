@@ -11,8 +11,8 @@ use Innmind\Immutable\Str;
  */
 final class DataReceived
 {
-    private $connection;
-    private $data;
+    private Connection $connection;
+    private Str $data;
 
     public function __construct(Connection $connection, Str $data)
     {

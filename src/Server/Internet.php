@@ -22,8 +22,9 @@ use Innmind\Url\Authority\PortInterface;
 
 final class Internet implements Server
 {
+    /** @var resource */
     private $resource;
-    private $stream;
+    private Stream\Stream $stream;
 
     public function __construct(
         Transport $transport,

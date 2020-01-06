@@ -20,9 +20,9 @@ use Innmind\TimeContinuum\ElapsedPeriod;
  */
 final class Loop
 {
-    private $dispatch;
-    private $timeout;
-    private $strategy;
+    private EventBus $dispatch;
+    private ElapsedPeriod $timeout;
+    private Strategy $strategy;
 
     public function __construct(
         EventBus $dispatch,

@@ -20,9 +20,10 @@ use Innmind\Stream\{
 
 final class Unix implements Server
 {
-    private $path;
+    private string $path;
+    /** @var resource */
     private $resource;
-    private $stream;
+    private Stream\Stream $stream;
 
     public function __construct(Address $path)
     {

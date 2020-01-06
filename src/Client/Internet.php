@@ -22,8 +22,8 @@ use Innmind\Immutable\Str;
 
 final class Internet implements Client
 {
-    private $stream;
-    private $name;
+    private Stream\Bidirectional $stream;
+    private string $name;
 
     public function __construct(
         Transport $transport,

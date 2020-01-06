@@ -11,8 +11,8 @@ use Innmind\Immutable\{
 
 final class Transport
 {
-    private $transport;
-    private $options;
+    private string $transport;
+    private MapInterface $options;
 
     private function __construct(string $transport)
     {

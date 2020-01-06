@@ -7,7 +7,7 @@ use Innmind\Socket\Exception\DirectoryNotFound;
 
 final class Unix
 {
-    private $path;
+    private string $path;
 
     public function __construct(string $path)
     {

@@ -20,13 +20,13 @@ use Innmind\Immutable\Str;
 
 final class Stream implements Connection
 {
-    private $stream;
-    private $name;
+    private Bidirectional $stream;
+    private string $name;
 
     public function __construct($resource)
     {
         $this->stream = new Bidirectional($resource);
-        $this->name = stream_socket_get_name($resource, false);
+        $this->name = stream_socket_get_name($resource, false) ?: '';
     }
 
     /**

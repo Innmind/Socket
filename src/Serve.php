@@ -16,9 +16,9 @@ use Innmind\EventBus\EventBus;
 
 final class Serve
 {
-    private $dispatch;
-    private $watch;
-    private $strategy;
+    private EventBus $dispatch;
+    private Watch $watch;
+    private Strategy $strategy;
 
     public function __construct(
         EventBus $dispatch,

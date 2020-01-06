@@ -21,9 +21,9 @@ use Innmind\Immutable\Str;
 
 final class Unix implements Client
 {
-    private $path;
-    private $stream;
-    private $name;
+    private string $path;
+    private Stream\Bidirectional $stream;
+    private string $name;
 
     public function __construct(Address $path)
     {
