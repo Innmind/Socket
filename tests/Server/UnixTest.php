@@ -12,7 +12,7 @@ use Innmind\Socket\{
 };
 use Innmind\Stream\{
     Stream\Position,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
 use Symfony\Component\Process\Process;
 use PHPUnit\Framework\TestCase;
@@ -65,7 +65,7 @@ class UnixTest extends TestCase
 
         $this->assertFalse($unix->closed());
         $this->assertTrue(file_exists('/tmp/foo.sock'));
-        $this->assertSame($unix, $unix->close());
+        $this->assertNull($unix->close());
         $this->assertTrue($unix->closed());
         $this->assertFalse(file_exists('/tmp/foo.sock'));
     }

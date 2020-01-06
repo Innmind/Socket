@@ -4,7 +4,7 @@ declare(strict_types = 1);
 namespace Tests\Innmind\Socket\Internet;
 
 use Innmind\Socket\Internet\Transport;
-use Innmind\Immutable\MapInterface;
+use Innmind\Immutable\Map;
 use PHPUnit\Framework\TestCase;
 
 class TransportTest extends TestCase
@@ -18,9 +18,9 @@ class TransportTest extends TestCase
 
         $this->assertInstanceOf(Transport::class, $transport);
         $this->assertSame($expected, (string) $transport);
-        $this->assertInstanceOf(MapInterface::class, $transport->options());
-        $this->assertSame('string', (string) $transport->options()->keyType());
-        $this->assertSame('variable', (string) $transport->options()->valueType());
+        $this->assertInstanceOf(Map::class, $transport->options());
+        $this->assertSame('string', $transport->options()->keyType());
+        $this->assertSame('variable', $transport->options()->valueType());
         $this->assertCount(0, $transport->options());
     }
 

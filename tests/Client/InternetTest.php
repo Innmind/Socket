@@ -12,12 +12,12 @@ use Innmind\Socket\{
 };
 use Innmind\Stream\{
     Stream\Position,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
 use Innmind\IP\IPv4;
 use Innmind\Url\{
     Url,
-    Authority\Port
+    Authority\Port,
 };
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -31,12 +31,12 @@ class InternetTest extends TestCase
     {
         $this->server = new Server(
             Transport::tcp(),
-            new IPv4('127.0.0.1'),
-            new Port(1234)
+            IPv4::of('127.0.0.1'),
+            Port::of(1234),
         );
         $this->client = new Internet(
             Transport::tcp(),
-            Url::fromString('//127.0.0.1:1234')->authority()
+            Url::of('//127.0.0.1:1234')->authority(),
         );
     }
 
@@ -55,7 +55,7 @@ class InternetTest extends TestCase
     {
         $client = new Internet(
             Transport::tcp()->withOption('verify_host', true),
-            Url::fromString('//127.0.0.1:1234')->authority()
+            Url::of('//127.0.0.1:1234')->authority()
         );
 
         $this->assertInstanceOf(Client::class, $client);
@@ -70,7 +70,7 @@ class InternetTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->client->closed());
-        $this->assertSame($this->client, $this->client->close());
+        $this->assertNull($this->client->close());
         $this->assertTrue($this->client->closed());
     }
 
@@ -113,49 +113,49 @@ class InternetTest extends TestCase
 
     public function testRead()
     {
-        $this->client->write(new Str('foobar'));
-        $this->server->accept()->write(new Str('foobar'));
+        $this->client->write(Str::of('foobar'));
+        $this->server->accept()->write(Str::of('foobar'));
         $text = $this->client->read(3);
 
         $this->assertInstanceOf(Str::class, $text);
-        $this->assertSame('foo', (string) $text);
-        $this->assertSame('bar', (string) $this->client->read(3));
+        $this->assertSame('foo', $text->toString());
+        $this->assertSame('bar', $this->client->read(3)->toString());
     }
 
     public function testReadRemaining()
     {
-        $this->client->write(new Str('foobar'));
-        $this->server->accept()->write(new Str('foobar'));
+        $this->client->write(Str::of('foobar'));
+        $this->server->accept()->write(Str::of('foobar'));
         $text = $this->client->read();
 
         $this->assertInstanceOf(Str::class, $text);
-        $this->assertSame('foobar', (string) $text);
-        $this->assertSame('', (string) $this->client->read(3));
+        $this->assertSame('foobar', $text->toString());
+        $this->assertSame('', $this->client->read(3)->toString());
     }
 
     public function testReadLine()
     {
-        $this->client->write(new Str('foobar'));
-        $this->server->accept()->write(new Str("foo\nbar"));
+        $this->client->write(Str::of('foobar'));
+        $this->server->accept()->write(Str::of("foo\nbar"));
         $text = $this->client->readLine();
 
         $this->assertInstanceOf(Str::class, $text);
-        $this->assertSame("foo\n", (string) $text);
-        $this->assertSame('bar', (string) $this->client->readLine());
+        $this->assertSame("foo\n", $text->toString());
+        $this->assertSame('bar', $this->client->readLine()->toString());
     }
 
     public function testWrite()
     {
-        $this->client->write(new Str('foobar'));
+        $this->client->write(Str::of('foobar'));
         $text = $this->server->accept()->read();
 
         $this->assertInstanceOf(Str::class, $text);
-        $this->assertSame('foobar', (string) $text);
+        $this->assertSame('foobar', $text->toString());
     }
 
     public function testStringCast()
     {
-        $this->assertSame('127.0.0.1:1234', (string) $this->client);
+        $this->assertSame('127.0.0.1:1234', $this->client->toString());
     }
 
     public function testClosedWhenServerConnectionClosed()

@@ -6,7 +6,7 @@ namespace Innmind\Socket;
 use Innmind\Stream\{
     Readable,
     Writable,
-    Selectable
+    Selectable,
 };
 
 interface Client extends Readable, Writable, Selectable

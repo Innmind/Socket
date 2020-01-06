@@ -10,5 +10,5 @@ use Innmind\Socket\{
 use Innmind\Immutable\Str;
 
 $socket = new Unix(new Address('/tmp/unix'));
-$socket->write(new Str('woop woop!'));
+$socket->write(Str::of('woop woop!'));
 $socket->close();

@@ -12,7 +12,7 @@ use Innmind\Socket\{
 };
 use Innmind\Stream\{
     Stream\Position,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -44,7 +44,7 @@ class StreamTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->stream->closed());
-        $this->assertSame($this->stream, $this->stream->close());
+        $this->assertNull($this->stream->close());
         $this->assertTrue($this->stream->closed());
     }
 
@@ -89,21 +89,21 @@ class StreamTest extends TestCase
     {
         $text = $this->stream->read(3);
         $this->assertInstanceOf(Str::class, $text);
-        $this->assertSame('foo', (string) $text);
+        $this->assertSame('foo', $text->toString());
     }
 
     public function testReadRemaining()
     {
         $text = $this->stream->read();
         $this->assertInstanceOf(Str::class, $text);
-        $this->assertSame("foo\nbar", (string) $text);
+        $this->assertSame("foo\nbar", $text->toString());
     }
 
     public function testReadLine()
     {
         $text = $this->stream->readLine();
         $this->assertInstanceOf(Str::class, $text);
-        $this->assertSame("foo\n", (string) $text);
+        $this->assertSame("foo\n", $text->toString());
     }
 
     public function testWrite()
@@ -112,7 +112,7 @@ class StreamTest extends TestCase
         $client = stream_socket_client('unix:///tmp/foo.sock');
         $stream = new Stream(stream_socket_accept($server->resource()));
 
-        $this->assertSame($stream, $stream->write(new Str('baz')));
+        $this->assertNull($stream->write(Str::of('baz')));
         $this->assertSame('baz', fread($client, 3));
     }
 
@@ -122,6 +122,6 @@ class StreamTest extends TestCase
         stream_socket_client('unix:///tmp/foo.sock');
         $stream = new Stream(stream_socket_accept($server->resource()));
 
-        $this->assertSame('/tmp/foo.sock', (string) $stream);
+        $this->assertSame('/tmp/foo.sock', $stream->toString());
     }
 }

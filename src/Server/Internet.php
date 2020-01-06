@@ -11,56 +11,56 @@ use Innmind\Socket\{
     Exception\SocketNotSeekable
 };
 use Innmind\Stream\{
-    Stream,
+    Stream\Stream,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
 use Innmind\IP\IP;
-use Innmind\Url\Authority\PortInterface;
+use Innmind\Url\Authority\Port;
 
 final class Internet implements Server
 {
     /** @var resource */
     private $resource;
-    private Stream\Stream $stream;
+    private Stream $stream;
 
     public function __construct(
         Transport $transport,
         IP $ip,
-        PortInterface $port
+        Port $port
     ) {
-        $socket = @stream_socket_server(sprintf(
+        $socket = @\stream_socket_server(\sprintf(
             '%s://%s:%s',
             $transport,
-            $ip,
-            $port
+            $ip->toString(),
+            $port->toString(),
         ));
 
         if ($socket === false) {
-            $error = error_get_last();
+            $error = \error_get_last();
 
             throw new FailedToOpenSocket(
                 $error['message'],
-                $error['type']
+                $error['type'],
             );
         }
 
         $this->resource = $socket;
-        $this->stream = new Stream\Stream($socket);
+        $this->stream = new Stream($socket);
     }
 
     public function accept(): Connection
     {
-        $socket = @stream_socket_accept($this->resource());
+        $socket = @\stream_socket_accept($this->resource());
 
         if ($socket === false) {
-            $error = error_get_last();
+            $error = \error_get_last();
 
             throw new FailedAcceptingIncomingConnection(
                 $error['message'],
-                $error['type']
+                $error['type'],
             );
         }
 
@@ -75,11 +75,9 @@ final class Internet implements Server
         return $this->resource;
     }
 
-    public function close(): Stream
+    public function close(): void
     {
         $this->stream->close();
-
-        return $this;
     }
 
     public function closed(): bool
@@ -92,12 +90,12 @@ final class Internet implements Server
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): Stream
+    public function seek(Position $position, Mode $mode = null): void
     {
         throw new SocketNotSeekable;
     }
 
-    public function rewind(): Stream
+    public function rewind(): void
     {
         throw new SocketNotSeekable;
     }

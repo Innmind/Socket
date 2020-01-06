@@ -9,7 +9,7 @@ use Innmind\Socket\{
     Event\ConnectionClosed,
     Event\ConnectionReady,
     Loop\Strategy,
-    Loop\Strategy\Infinite
+    Loop\Strategy\Infinite,
 };
 use Innmind\Stream\Watch;
 use Innmind\EventBus\EventBus;

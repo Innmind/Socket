@@ -5,16 +5,14 @@ namespace Innmind\Socket\Server\Connection;
 
 use Innmind\Socket\{
     Server\Connection,
-    Exception\SocketNotSeekable
+    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
-    Stream as StreamInterface,
-    Writable,
     Stream\Bidirectional,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
 use Innmind\Immutable\Str;
 
@@ -26,7 +24,7 @@ final class Stream implements Connection
     public function __construct($resource)
     {
         $this->stream = new Bidirectional($resource);
-        $this->name = stream_socket_get_name($resource, false) ?: '';
+        $this->name = \stream_socket_get_name($resource, false) ?: '';
     }
 
     /**
@@ -37,11 +35,9 @@ final class Stream implements Connection
         return $this->stream->resource();
     }
 
-    public function close(): StreamInterface
+    public function close(): void
     {
         $this->stream->close();
-
-        return $this;
     }
 
     public function closed(): bool
@@ -54,12 +50,12 @@ final class Stream implements Connection
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): StreamInterface
+    public function seek(Position $position, Mode $mode = null): void
     {
         throw new SocketNotSeekable;
     }
 
-    public function rewind(): StreamInterface
+    public function rewind(): void
     {
         throw new SocketNotSeekable;
     }
@@ -92,14 +88,12 @@ final class Stream implements Connection
         return $this->stream->readLine();
     }
 
-    public function write(Str $data): Writable
+    public function write(Str $data): void
     {
         $this->stream->write($data);
-
-        return $this;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->name;
     }

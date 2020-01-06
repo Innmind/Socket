@@ -7,7 +7,7 @@ use Innmind\Socket\{
     Client,
     Address\Unix as Address,
     Exception\FailedToOpenSocket,
-    Exception\SocketNotSeekable
+    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream,
@@ -15,7 +15,7 @@ use Innmind\Stream\{
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
 use Innmind\Immutable\Str;
 
@@ -28,19 +28,19 @@ final class Unix implements Client
     public function __construct(Address $path)
     {
         $this->path = (string) $path;
-        $socket = @stream_socket_client('unix://'.$path);
+        $socket = @\stream_socket_client('unix://'.$path);
 
         if ($socket === false) {
-            $error = error_get_last();
+            $error = \error_get_last();
 
             throw new FailedToOpenSocket(
                 $error['message'],
-                $error['type']
+                $error['type'],
             );
         }
 
         $this->stream = new Stream\Bidirectional($socket);
-        $this->name = stream_socket_get_name($socket, true);
+        $this->name = \stream_socket_get_name($socket, true);
     }
 
     /**
@@ -51,11 +51,9 @@ final class Unix implements Client
         return $this->stream->resource();
     }
 
-    public function close(): Stream
+    public function close(): void
     {
         $this->stream->close();
-
-        return $this;
     }
 
     public function closed(): bool
@@ -64,7 +62,7 @@ final class Unix implements Client
             return true;
         }
 
-        if (feof($this->stream->resource())) {
+        if (\feof($this->stream->resource())) {
             $this->stream->close();
         }
 
@@ -76,12 +74,12 @@ final class Unix implements Client
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): Stream
+    public function seek(Position $position, Mode $mode = null): void
     {
         throw new SocketNotSeekable;
     }
 
-    public function rewind(): Stream
+    public function rewind(): void
     {
         throw new SocketNotSeekable;
     }
@@ -114,14 +112,12 @@ final class Unix implements Client
         return $this->stream->readLine();
     }
 
-    public function write(Str $data): Writable
+    public function write(Str $data): void
     {
         $this->stream->write($data);
-
-        return $this;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->name;
     }

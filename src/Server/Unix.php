@@ -8,14 +8,14 @@ use Innmind\Socket\{
     Address\Unix as Address,
     Exception\FailedToOpenSocket,
     Exception\FailedAcceptingIncomingConnection,
-    Exception\SocketNotSeekable
+    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
-    Stream,
+    Stream\Stream,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize
+    Exception\UnknownSize,
 };
 
 final class Unix implements Server
@@ -23,24 +23,24 @@ final class Unix implements Server
     private string $path;
     /** @var resource */
     private $resource;
-    private Stream\Stream $stream;
+    private Stream $stream;
 
     public function __construct(Address $path)
     {
         $this->path = (string) $path;
-        $socket = @stream_socket_server('unix://'.$path);
+        $socket = @\stream_socket_server('unix://'.$path);
 
         if ($socket === false) {
-            $error = error_get_last();
+            $error = \error_get_last();
 
             throw new FailedToOpenSocket(
                 $error['message'],
-                $error['type']
+                $error['type'],
             );
         }
 
         $this->resource = $socket;
-        $this->stream = new Stream\Stream($socket);
+        $this->stream = new Stream($socket);
     }
 
     /**
@@ -52,7 +52,7 @@ final class Unix implements Server
         try {
             return new self($path);
         } catch (FailedToOpenSocket $e) {
-            @unlink((string) $path);
+            @\unlink((string) $path);
 
             return new self($path);
         }
@@ -60,14 +60,14 @@ final class Unix implements Server
 
     public function accept(): Connection
     {
-        $socket = @stream_socket_accept($this->resource());
+        $socket = @\stream_socket_accept($this->resource());
 
         if ($socket === false) {
-            $error = error_get_last();
+            $error = \error_get_last();
 
             throw new FailedAcceptingIncomingConnection(
                 $error['message'],
-                $error['type']
+                $error['type'],
             );
         }
 
@@ -82,14 +82,12 @@ final class Unix implements Server
         return $this->resource;
     }
 
-    public function close(): Stream
+    public function close(): void
     {
         if (!$this->closed()) {
             $this->stream->close();
-            @unlink($this->path);
+            @\unlink($this->path);
         }
-
-        return $this;
     }
 
     public function closed(): bool
@@ -102,12 +100,12 @@ final class Unix implements Server
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): Stream
+    public function seek(Position $position, Mode $mode = null): void
     {
         throw new SocketNotSeekable;
     }
 
-    public function rewind(): Stream
+    public function rewind(): void
     {
         throw new SocketNotSeekable;
     }
