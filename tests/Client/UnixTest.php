@@ -14,6 +14,7 @@ use Innmind\Stream\{
     Stream\Position,
     Exception\UnknownSize
 };
+use Innmind\Url\Path;
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
 
@@ -24,7 +25,7 @@ class UnixTest extends TestCase
 
     public function setUp(): void
     {
-        $this->server = Server::recoverable($address = new Address('/tmp/foo'));
+        $this->server = Server::recoverable($address = new Address(Path::of('/tmp/foo')));
         $this->client = new Unix($address);
     }
 

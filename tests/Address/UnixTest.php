@@ -7,21 +7,22 @@ use Innmind\Socket\{
     Address\Unix,
     Exception\DirectoryNotFound,
 };
+use Innmind\Url\Path;
 use PHPUnit\Framework\TestCase;
 
 class UnixTest extends TestCase
 {
     public function testInterface()
     {
-        $this->assertSame('/tmp/foo.sock', (new Unix('/tmp/foo'))->toString());
-        $this->assertSame('/tmp/foo.sock', (new Unix('/tmp/foo.so'))->toString());
-        $this->assertSame('/tmp/foo.sock', (new Unix('/tmp/foo.sock'))->toString());
+        $this->assertSame('/tmp/foo.sock', (new Unix(Path::of('/tmp/foo')))->toString());
+        $this->assertSame('/tmp/foo.sock', (new Unix(Path::of('/tmp/foo.so')))->toString());
+        $this->assertSame('/tmp/foo.sock', (new Unix(Path::of('/tmp/foo.sock')))->toString());
     }
 
     public function testThrowWhenDirectoryNotFound()
     {
         $this->expectException(DirectoryNotFound::class);
 
-        new Unix('/whatever/file');
+        new Unix(Path::of('/whatever/file'));
     }
 }
