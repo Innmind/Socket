@@ -31,7 +31,7 @@ final class Internet implements Client
     ) {
         $socket = @\stream_socket_client(\sprintf(
             '%s://%s',
-            $transport,
+            $transport->toString(),
             $authority->toString(),
         ));
 
@@ -49,7 +49,7 @@ final class Internet implements Client
             ->reduce(
                 $socket,
                 static function($socket, string $key, $value) use ($transport) {
-                    \stream_context_set_option($socket, (string) $transport, $key, $value);
+                    \stream_context_set_option($socket, $transport->toString(), $key, $value);
 
                     return $socket;
                 }

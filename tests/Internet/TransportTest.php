@@ -17,7 +17,7 @@ class TransportTest extends TestCase
         $transport = Transport::$method();
 
         $this->assertInstanceOf(Transport::class, $transport);
-        $this->assertSame($expected, (string) $transport);
+        $this->assertSame($expected, $transport->toString());
         $this->assertInstanceOf(Map::class, $transport->options());
         $this->assertSame('string', $transport->options()->keyType());
         $this->assertSame('variable', $transport->options()->valueType());
@@ -31,8 +31,8 @@ class TransportTest extends TestCase
 
         $this->assertInstanceOf(Transport::class, $transport2);
         $this->assertNotSame($transport, $transport2);
-        $this->assertSame('ssl', (string) $transport);
-        $this->assertSame('ssl', (string) $transport2);
+        $this->assertSame('ssl', $transport->toString());
+        $this->assertSame('ssl', $transport2->toString());
         $this->assertCount(0, $transport->options());
         $this->assertCount(1, $transport2->options());
         $this->assertSame(42, $transport2->options()->get('foo'));

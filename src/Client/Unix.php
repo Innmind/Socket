@@ -27,8 +27,8 @@ final class Unix implements Client
 
     public function __construct(Address $path)
     {
-        $this->path = (string) $path;
-        $socket = @\stream_socket_client('unix://'.$path);
+        $this->path = $path->toString();
+        $socket = @\stream_socket_client('unix://'.$path->toString());
 
         if ($socket === false) {
             $error = \error_get_last();

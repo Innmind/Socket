@@ -27,8 +27,8 @@ final class Unix implements Server
 
     public function __construct(Address $path)
     {
-        $this->path = (string) $path;
-        $socket = @\stream_socket_server('unix://'.$path);
+        $this->path = $path->toString();
+        $socket = @\stream_socket_server('unix://'.$path->toString());
 
         if ($socket === false) {
             $error = \error_get_last();
@@ -52,7 +52,7 @@ final class Unix implements Server
         try {
             return new self($path);
         } catch (FailedToOpenSocket $e) {
-            @\unlink((string) $path);
+            @\unlink($path->toString());
 
             return new self($path);
         }

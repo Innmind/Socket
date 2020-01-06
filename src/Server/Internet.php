@@ -33,7 +33,7 @@ final class Internet implements Server
     ) {
         $socket = @\stream_socket_server(\sprintf(
             '%s://%s:%s',
-            $transport,
+            $transport->toString(),
             $ip->toString(),
             $port->toString(),
         ));

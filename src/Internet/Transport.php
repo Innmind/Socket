@@ -74,7 +74,7 @@ final class Transport
         return $this->options;
     }
 
-    public function __toString(): string
+    public function toString(): string
     {
         return $this->transport;
     }
