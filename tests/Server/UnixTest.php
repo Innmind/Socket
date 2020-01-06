@@ -14,10 +14,7 @@ use Innmind\Stream\{
     Stream\Position,
     Exception\UnknownSize
 };
-use Innmind\Server\Control\{
-    ServerFactory,
-    Server\Command
-};
+use Symfony\Component\Process\Process;
 use PHPUnit\Framework\TestCase;
 
 class UnixTest extends TestCase
@@ -34,14 +31,8 @@ class UnixTest extends TestCase
     {
         @unlink('/tmp/unix.sock');
         $unix = new Unix(new Address('/tmp/unix'));
-        (new ServerFactory)
-            ->make()
-            ->processes()
-            ->execute(
-                Command::foreground('php')
-                    ->withArgument('fixtures/unixClient.php')
-            )
-            ->wait();
+        $process = new Process(['php', 'fixtures/unixClient.php']);
+        $process->run();
 
         $this->assertInstanceOf(Connection::class, $unix->accept());
     }

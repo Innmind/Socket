@@ -34,6 +34,6 @@
     },
     "require-dev": {
         "phpunit/phpunit": "~8.0",
-        "innmind/server-control": "^2.0"
+        "symfony/process": "^5.0"
     }
 }
