@@ -14,9 +14,9 @@ class UnixTest extends TestCase
 {
     public function testInterface()
     {
-        $this->assertSame('/tmp/foo.sock', (new Unix(Path::of('/tmp/foo')))->toString());
-        $this->assertSame('/tmp/foo.sock', (new Unix(Path::of('/tmp/foo.so')))->toString());
-        $this->assertSame('/tmp/foo.sock', (new Unix(Path::of('/tmp/foo.sock')))->toString());
+        $this->assertSame('/tmp/foo.sock', Unix::of('/tmp/foo')->toString());
+        $this->assertSame('/tmp/foo.sock', Unix::of('/tmp/foo.so')->toString());
+        $this->assertSame('/tmp/foo.sock', Unix::of('/tmp/foo.sock')->toString());
     }
 
     public function testThrowWhenDirectoryNotFound()

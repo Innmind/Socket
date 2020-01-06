@@ -25,6 +25,11 @@ final class Unix
         );
     }
 
+    public static function of(string $path): self
+    {
+        return new self(Path::of($path));
+    }
+
     public function toString(): string
     {
         return $this->path;
