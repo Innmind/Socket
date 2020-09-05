@@ -56,7 +56,7 @@ class UnixTest extends TestCase
     {
         $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
-        $this->assertTrue(is_resource($unix->resource()));
+        $this->assertIsResource($unix->resource());
         $this->assertSame('stream', get_resource_type($unix->resource()));
     }
 
@@ -65,10 +65,10 @@ class UnixTest extends TestCase
         $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
         $this->assertFalse($unix->closed());
-        $this->assertTrue(file_exists('/tmp/foo.sock'));
+        $this->assertFileExists('/tmp/foo.sock');
         $this->assertNull($unix->close());
         $this->assertTrue($unix->closed());
-        $this->assertFalse(file_exists('/tmp/foo.sock'));
+        $this->assertFileNotExists('/tmp/foo.sock');
     }
 
     public function testPosition()
