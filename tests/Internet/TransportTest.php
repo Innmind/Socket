@@ -44,8 +44,6 @@ class TransportTest extends TestCase
             ['tcp', 'tcp'],
             ['ssl', 'ssl'],
             ['ssl', 'ssl'],
-            ['sslv2', 'sslv2'],
-            ['sslv3', 'sslv3'],
             ['tls', 'tls'],
             ['tlsv1.0', 'tlsv10'],
             ['tlsv1.2', 'tlsv12'],
