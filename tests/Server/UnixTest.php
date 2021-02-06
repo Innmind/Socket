@@ -22,7 +22,7 @@ class UnixTest extends TestCase
 {
     public function testInterface()
     {
-        @unlink('/tmp/foo.sock');
+        @\unlink('/tmp/foo.sock');
         $unix = new Unix(new Address(Path::of('/tmp/foo')));
 
         $this->assertInstanceOf(Server::class, $unix);
@@ -30,7 +30,7 @@ class UnixTest extends TestCase
 
     public function testAccept()
     {
-        @unlink('/tmp/unix.sock');
+        @\unlink('/tmp/unix.sock');
         $unix = new Unix(new Address(Path::of('/tmp/unix')));
         $process = new Process(['php', 'fixtures/unixClient.php']);
         $process->run();
@@ -45,9 +45,9 @@ class UnixTest extends TestCase
 
     public function testRecoverableWhenSockFileExisting()
     {
-        @unlink('/tmp/foo.sock');
-        $socket = stream_socket_server('unix:///tmp/foo.sock');
-        fclose($socket);
+        @\unlink('/tmp/foo.sock');
+        $socket = \stream_socket_server('unix:///tmp/foo.sock');
+        \fclose($socket);
 
         $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address(Path::of('/tmp/foo'))));
     }
@@ -56,8 +56,8 @@ class UnixTest extends TestCase
     {
         $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
-        $this->assertTrue(is_resource($unix->resource()));
-        $this->assertSame('stream', get_resource_type($unix->resource()));
+        $this->assertIsResource($unix->resource());
+        $this->assertSame('stream', \get_resource_type($unix->resource()));
     }
 
     public function testClose()
@@ -65,10 +65,10 @@ class UnixTest extends TestCase
         $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
 
         $this->assertFalse($unix->closed());
-        $this->assertTrue(file_exists('/tmp/foo.sock'));
+        $this->assertFileExists('/tmp/foo.sock');
         $this->assertNull($unix->close());
         $this->assertTrue($unix->closed());
-        $this->assertFalse(file_exists('/tmp/foo.sock'));
+        $this->assertFileDoesNotExist('/tmp/foo.sock');
     }
 
     public function testPosition()

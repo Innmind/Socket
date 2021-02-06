@@ -44,9 +44,6 @@ final class Unix implements Client
         $this->name = \stream_socket_get_name($socket, true);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function resource()
     {
         return $this->stream->resource();
@@ -100,9 +97,6 @@ final class Unix implements Client
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function read(int $length = null): Str
     {
         return $this->stream->read($length);

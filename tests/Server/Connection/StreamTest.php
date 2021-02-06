@@ -24,9 +24,9 @@ class StreamTest extends TestCase
 
     public function setUp(): void
     {
-        $resource = tmpfile();
-        fwrite($resource, "foo\nbar");
-        fseek($resource, 0);
+        $resource = \tmpfile();
+        \fwrite($resource, "foo\nbar");
+        \fseek($resource, 0);
 
         $this->stream = new Stream($resource);
     }
@@ -38,8 +38,8 @@ class StreamTest extends TestCase
 
     public function testResource()
     {
-        $this->assertTrue(is_resource($this->stream->resource()));
-        $this->assertSame('stream', get_resource_type($this->stream->resource()));
+        $this->assertIsResource($this->stream->resource());
+        $this->assertSame('stream', \get_resource_type($this->stream->resource()));
     }
 
     public function testClose()
@@ -110,18 +110,18 @@ class StreamTest extends TestCase
     public function testWrite()
     {
         $server = Unix::recoverable(new Address(Path::of('/tmp/foo')));
-        $client = stream_socket_client('unix:///tmp/foo.sock');
-        $stream = new Stream(stream_socket_accept($server->resource()));
+        $client = \stream_socket_client('unix:///tmp/foo.sock');
+        $stream = new Stream(\stream_socket_accept($server->resource()));
 
         $this->assertNull($stream->write(Str::of('baz')));
-        $this->assertSame('baz', fread($client, 3));
+        $this->assertSame('baz', \fread($client, 3));
     }
 
     public function testStringCast()
     {
         $server = Unix::recoverable(new Address(Path::of('/tmp/foo')));
-        stream_socket_client('unix:///tmp/foo.sock');
-        $stream = new Stream(stream_socket_accept($server->resource()));
+        \stream_socket_client('unix:///tmp/foo.sock');
+        $stream = new Stream(\stream_socket_accept($server->resource()));
 
         $this->assertSame('/tmp/foo.sock', $stream->toString());
     }

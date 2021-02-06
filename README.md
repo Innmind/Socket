@@ -1,9 +1,8 @@
 # Socket
 
-| `develop` |
-|-----------|
-| [![codecov](https://codecov.io/gh/Innmind/Socket/branch/develop/graph/badge.svg)](https://codecov.io/gh/Innmind/Socket) |
-| [![Build Status](https://github.com/Innmind/Socket/workflows/CI/badge.svg)](https://github.com/Innmind/Socket/actions?query=workflow%3ACI) |
+[![Build Status](https://github.com/innmind/socket/workflows/CI/badge.svg?branch=master)](https://github.com/innmind/socket/actions?query=workflow%3ACI)
+[![codecov](https://codecov.io/gh/innmind/socket/branch/develop/graph/badge.svg)](https://codecov.io/gh/innmind/socket)
+[![Type Coverage](https://shepherd.dev/github/innmind/socket/coverage.svg)](https://shepherd.dev/github/innmind/socket)
 
 Layer on top of [`innmind/stream`](https://github.com/Innmind/Stream) to specifically work with sockets.
 

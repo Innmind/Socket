@@ -46,7 +46,6 @@ class TransportTest extends TestCase
             ['ssl', 'ssl'],
             ['tls', 'tls'],
             ['tlsv1.0', 'tlsv10'],
-            ['tlsv1.1', 'tlsv11'],
             ['tlsv1.2', 'tlsv12'],
         ];
     }
