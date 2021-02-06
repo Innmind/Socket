@@ -52,8 +52,8 @@ class InternetTest extends TestCase
 
     public function testResource()
     {
-        $this->assertTrue(is_resource($this->server->resource()));
-        $this->assertSame('stream', get_resource_type($this->server->resource()));
+        $this->assertTrue(\is_resource($this->server->resource()));
+        $this->assertSame('stream', \get_resource_type($this->server->resource()));
     }
 
     public function testClose()

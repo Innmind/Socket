@@ -30,9 +30,6 @@ final class Stream implements Connection
         $this->name = \stream_socket_get_name($resource, false) ?: '';
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function resource()
     {
         return $this->stream->resource();
@@ -78,9 +75,6 @@ final class Stream implements Connection
         return false;
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function read(int $length = null): Str
     {
         return $this->stream->read($length);

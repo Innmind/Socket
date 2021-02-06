@@ -76,9 +76,6 @@ final class Unix implements Server
         return new Connection\Stream($socket);
     }
 
-    /**
-     * {@inheritdoc}
-     */
     public function resource()
     {
         return $this->resource;

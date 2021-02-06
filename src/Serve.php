@@ -66,7 +66,6 @@ final class Serve
             } catch (\Throwable $e) {
                 ($this->dispatch)($e);
             }
-
         } while (($this->strategy)());
     }
 }

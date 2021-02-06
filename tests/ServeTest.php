@@ -44,17 +44,17 @@ class ServeTest extends TestCase
             ->expects($this->exactly(5))
             ->method('__invoke')
             ->withConsecutive(
-                [$this->callback(function(ConnectionReceived $e) use ($connection): bool {
+                [$this->callback(static function(ConnectionReceived $e) use ($connection): bool {
                     return $e->connection() === $connection;
                 })],
-                [$this->callback(function(ConnectionReady $e) use ($connection): bool {
+                [$this->callback(static function(ConnectionReady $e) use ($connection): bool {
                     return $e->connection() === $connection;
                 })],
-                [$this->callback(function(ConnectionReady $e) use ($connection): bool {
+                [$this->callback(static function(ConnectionReady $e) use ($connection): bool {
                     return $e->connection() === $connection;
                 })],
                 [$exception],
-                [$this->callback(function(ConnectionClosed $e) use ($connection): bool {
+                [$this->callback(static function(ConnectionClosed $e) use ($connection): bool {
                     return $e->connection() === $connection;
                 })],
             )

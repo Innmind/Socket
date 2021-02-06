@@ -13,13 +13,13 @@ final class Unix
     public function __construct(Path $path)
     {
         /** @var array{dirname: string, filename: string} */
-        $parts = pathinfo($path->toString());
+        $parts = \pathinfo($path->toString());
 
-        if (!is_dir($parts['dirname'])) {
+        if (!\is_dir($parts['dirname'])) {
             throw new DirectoryNotFound;
         }
 
-        $this->path = sprintf(
+        $this->path = \sprintf(
             '%s/%s.sock',
             $parts['dirname'],
             $parts['filename'],
