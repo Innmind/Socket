@@ -36,6 +36,16 @@ final class Transport
         return new self('ssl');
     }
 
+    public static function sslv3(): self
+    {
+        return new self('sslv3');
+    }
+
+    public static function sslv2(): self
+    {
+        return new self('sslv2');
+    }
+
     public static function tls(): self
     {
         return new self('tls');
