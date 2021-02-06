@@ -38,7 +38,7 @@ class StreamTest extends TestCase
 
     public function testResource()
     {
-        $this->assertTrue(\is_resource($this->stream->resource()));
+        $this->assertIsResource($this->stream->resource());
         $this->assertSame('stream', \get_resource_type($this->stream->resource()));
     }
 
