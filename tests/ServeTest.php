@@ -31,98 +31,83 @@ class ServeTest extends TestCase
             new Iterations(3)
         );
         $server = $this->createMock(Server::class);
+        $server
+            ->expects($this->once())
+            ->method('accept')
+            ->willReturn($connection = $this->createMock(Connection::class));
+        $connection
+            ->expects($this->exactly(3))
+            ->method('closed')
+            ->will($this->onConsecutiveCalls(false, false, true));
+        $exception = new \Exception;
+        $bus
+            ->expects($this->exactly(5))
+            ->method('__invoke')
+            ->withConsecutive(
+                [$this->callback(function(ConnectionReceived $e) use ($connection): bool {
+                    return $e->connection() === $connection;
+                })],
+                [$this->callback(function(ConnectionReady $e) use ($connection): bool {
+                    return $e->connection() === $connection;
+                })],
+                [$this->callback(function(ConnectionReady $e) use ($connection): bool {
+                    return $e->connection() === $connection;
+                })],
+                [$exception],
+                [$this->callback(function(ConnectionClosed $e) use ($connection): bool {
+                    return $e->connection() === $connection;
+                })],
+            )
+            ->will($this->onConsecutiveCalls(
+                null,
+                null,
+                $this->throwException($exception),
+                null,
+                null,
+            ));
         $watch
             ->expects($this->once())
             ->method('forRead')
             ->with($server)
             ->willReturn($watch2 = $this->createMock(Watch::class));
         $watch2
-            ->expects($this->at(0))
+            ->expects($this->once())
             ->method('__invoke')
             ->willReturn(new Ready(
                 Set::of(Selectable::class, $server),
                 Set::of(Selectable::class),
                 Set::of(Selectable::class)
             ));
-        $server
-            ->expects($this->once())
-            ->method('accept')
-            ->willReturn($connection = $this->createMock(Connection::class));
         $watch2
-            ->expects($this->at(1))
+            ->expects($this->once())
             ->method('forRead')
             ->with($connection)
             ->willReturn($watch3 = $this->createMock(Watch::class));
-        $bus
-            ->expects($this->at(0))
-            ->method('__invoke')
-            ->with($this->callback(function(ConnectionReceived $e) use ($connection): bool {
-                return $e->connection() === $connection;
-            }));
         $watch3
-            ->expects($this->at(0))
+            ->expects($this->exactly(3))
             ->method('__invoke')
-            ->willReturn(new Ready(
-                Set::of(Selectable::class, $connection),
-                Set::of(Selectable::class),
-                Set::of(Selectable::class)
+            ->will($this->onConsecutiveCalls(
+                new Ready(
+                    Set::of(Selectable::class, $connection),
+                    Set::of(Selectable::class),
+                    Set::of(Selectable::class)
+                ),
+                new Ready(
+                    Set::of(Selectable::class, $connection),
+                    Set::of(Selectable::class),
+                    Set::of(Selectable::class)
+                ),
+                new Ready(
+                    Set::of(Selectable::class, $connection),
+                    Set::of(Selectable::class),
+                    Set::of(Selectable::class)
+                ),
             ));
-        $connection
-            ->expects($this->at(0))
-            ->method('closed')
-            ->willReturn(false);
-        $bus
-            ->expects($this->at(1))
-            ->method('__invoke')
-            ->with($this->callback(function(ConnectionReady $e) use ($connection): bool {
-                return $e->connection() === $connection;
-            }));
         $watch3
-            ->expects($this->at(1))
-            ->method('__invoke')
-            ->willReturn(new Ready(
-                Set::of(Selectable::class, $connection),
-                Set::of(Selectable::class),
-                Set::of(Selectable::class)
-            ));
-        $connection
-            ->expects($this->at(1))
-            ->method('closed')
-            ->willReturn(false);
-        $bus
-            ->expects($this->at(2))
-            ->method('__invoke')
-            ->with($this->callback(function(ConnectionReady $e) use ($connection): bool {
-                return $e->connection() === $connection;
-            }))
-            ->will($this->throwException($exception = new \Exception));
-        $bus
-            ->expects($this->at(3))
-            ->method('__invoke')
-            ->with($exception);
-        $watch3
-            ->expects($this->at(2))
-            ->method('__invoke')
-            ->willReturn(new Ready(
-                Set::of(Selectable::class, $connection),
-                Set::of(Selectable::class),
-                Set::of(Selectable::class)
-            ));
-        $connection
-            ->expects($this->at(2))
-            ->method('closed')
-            ->willReturn(true);
-        $bus
-            ->expects($this->at(4))
-            ->method('__invoke')
-            ->with($this->callback(function(ConnectionClosed $e) use ($connection): bool {
-                return $e->connection() === $connection;
-            }));
-        $watch3
-            ->expects($this->at(3))
+            ->expects($this->once())
             ->method('unwatch')
             ->with($connection)
-            ->willReturn($watch4 = $this->createMock(Watch::class));
+            ->willReturn($this->createMock(Watch::class));
 
         $this->assertNull($serve($server));
     }
