@@ -10,9 +10,13 @@ use Innmind\Socket\{
 use Innmind\Url\Url;
 use Innmind\Immutable\Str;
 
-$socket = new Internet(
+Internet::of(
     Transport::tcp(),
     Url::of('//127.0.0.1:1234')->authority()
-);
-$socket->write(Str::of('woop woop!'));
-$socket->close();
+)
+    ->map(static function($socket) {
+        $socket->write(Str::of('woop woop!'));
+        $socket->close();
+
+        return $socket;
+    });

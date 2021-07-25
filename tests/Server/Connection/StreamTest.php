@@ -109,7 +109,10 @@ class StreamTest extends TestCase
 
     public function testWrite()
     {
-        $server = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $server = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
         $client = \stream_socket_client('unix:///tmp/foo.sock');
         $stream = new Stream(\stream_socket_accept($server->resource()));
 
@@ -119,7 +122,10 @@ class StreamTest extends TestCase
 
     public function testStringCast()
     {
-        $server = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $server = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
         \stream_socket_client('unix:///tmp/foo.sock');
         $stream = new Stream(\stream_socket_accept($server->resource()));
 

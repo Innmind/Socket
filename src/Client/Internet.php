@@ -6,7 +6,6 @@ namespace Innmind\Socket\Client;
 use Innmind\Socket\{
     Client,
     Internet\Transport,
-    Exception\FailedToOpenSocket,
     Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
@@ -18,17 +17,30 @@ use Innmind\Stream\{
     Exception\UnknownSize,
 };
 use Innmind\Url\Authority;
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+};
 
 final class Internet implements Client
 {
     private Stream\Bidirectional $stream;
     private string $name;
 
-    public function __construct(
-        Transport $transport,
-        Authority $authority
-    ) {
+    /**
+     * @param resource $socket
+     */
+    private function __construct($socket)
+    {
+        $this->stream = new Stream\Bidirectional($socket);
+        $this->name = \stream_socket_get_name($socket, true);
+    }
+
+    /**
+     * @return Maybe<self>
+     */
+    public static function of(Transport $transport, Authority $authority): Maybe
+    {
         $socket = @\stream_socket_client(\sprintf(
             '%s://%s',
             $transport->toString(),
@@ -36,13 +48,8 @@ final class Internet implements Client
         ));
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedToOpenSocket(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<self> */
+            return Maybe::nothing();
         }
 
         /**
@@ -61,8 +68,7 @@ final class Internet implements Client
                 }
             );
 
-        $this->stream = new Stream\Bidirectional($socket);
-        $this->name = \stream_socket_get_name($socket, true);
+        return Maybe::just(new self($socket));
     }
 
     public function resource()

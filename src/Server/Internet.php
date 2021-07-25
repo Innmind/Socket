@@ -6,7 +6,6 @@ namespace Innmind\Socket\Server;
 use Innmind\Socket\{
     Server,
     Internet\Transport,
-    Exception\FailedToOpenSocket,
     Exception\SocketNotSeekable
 };
 use Innmind\Stream\{
@@ -26,11 +25,23 @@ final class Internet implements Server
     private $resource;
     private Stream $stream;
 
-    public function __construct(
+    /**
+     * @param resource $socket
+     */
+    private function __construct($socket)
+    {
+        $this->resource = $socket;
+        $this->stream = new Stream($socket);
+    }
+
+    /**
+     * @return Maybe<self>
+     */
+    public static function of(
         Transport $transport,
         IP $ip,
-        Port $port
-    ) {
+        Port $port,
+    ): Maybe {
         $socket = @\stream_socket_server(\sprintf(
             '%s://%s:%s',
             $transport->toString(),
@@ -39,17 +50,11 @@ final class Internet implements Server
         ));
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedToOpenSocket(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<self> */
+            return Maybe::nothing();
         }
 
-        $this->resource = $socket;
-        $this->stream = new Stream($socket);
+        return Maybe::just(new self($socket));
     }
 
     public function accept(): Maybe

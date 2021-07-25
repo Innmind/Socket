@@ -10,6 +10,9 @@ use Innmind\Socket\{
 use Innmind\Url\Path;
 use Innmind\Immutable\Str;
 
-$socket = new Unix(new Address(Path::of('/tmp/unix')));
-$socket->write(Str::of('woop woop!'));
-$socket->close();
+Unix::of(new Address(Path::of('/tmp/unix')))->map(function($socket) {
+    $socket->write(Str::of('woop woop!'));
+    $socket->close();
+
+    return $socket;
+});

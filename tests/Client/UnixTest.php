@@ -25,8 +25,14 @@ class UnixTest extends TestCase
 
     public function setUp(): void
     {
-        $this->server = Server::recoverable($address = new Address(Path::of('/tmp/foo')));
-        $this->client = new Unix($address);
+        $this->server = Server::recoverable($address = new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
+        $this->client = Unix::of($address)->match(
+            static fn($client) => $client,
+            static fn() => null,
+        );
     }
 
     public function tearDown(): void

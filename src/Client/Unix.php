@@ -6,7 +6,6 @@ namespace Innmind\Socket\Client;
 use Innmind\Socket\{
     Client,
     Address\Unix as Address,
-    Exception\FailedToOpenSocket,
     Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
@@ -17,31 +16,38 @@ use Innmind\Stream\{
     Stream\Position\Mode,
     Exception\UnknownSize,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+};
 
 final class Unix implements Client
 {
-    private string $path;
     private Stream\Bidirectional $stream;
     private string $name;
 
-    public function __construct(Address $path)
+    /**
+     * @param resource $socket
+     */
+    private function __construct($socket)
     {
-        $this->path = $path->toString();
+        $this->stream = new Stream\Bidirectional($socket);
+        $this->name = \stream_socket_get_name($socket, true);
+    }
+
+    /**
+     * @return Maybe<self>
+     */
+    public static function of(Address $path): Maybe
+    {
         $socket = @\stream_socket_client('unix://'.$path->toString());
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedToOpenSocket(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<self> */
+            return Maybe::nothing();
         }
 
-        $this->stream = new Stream\Bidirectional($socket);
-        $this->name = \stream_socket_get_name($socket, true);
+        return Maybe::just(new self($socket));
     }
 
     public function resource()

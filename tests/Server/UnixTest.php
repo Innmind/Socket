@@ -23,7 +23,10 @@ class UnixTest extends TestCase
     public function testInterface()
     {
         @\unlink('/tmp/foo.sock');
-        $unix = new Unix(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::of(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Server::class, $unix);
     }
@@ -31,7 +34,10 @@ class UnixTest extends TestCase
     public function testAccept()
     {
         @\unlink('/tmp/unix.sock');
-        $unix = new Unix(new Address(Path::of('/tmp/unix')));
+        $unix = Unix::of(new Address(Path::of('/tmp/unix')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
         $process = new Process(['php', 'fixtures/unixClient.php']);
         $process->run();
 
@@ -43,7 +49,13 @@ class UnixTest extends TestCase
 
     public function testRecoverable()
     {
-        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address(Path::of('/tmp/foo'))));
+        $this->assertInstanceOf(
+            Unix::class,
+            Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+                static fn($socket) => $socket,
+                static fn() => null,
+            )
+        );
     }
 
     public function testRecoverableWhenSockFileExisting()
@@ -52,12 +64,21 @@ class UnixTest extends TestCase
         $socket = \stream_socket_server('unix:///tmp/foo.sock');
         \fclose($socket);
 
-        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address(Path::of('/tmp/foo'))));
+        $this->assertInstanceOf(
+            Unix::class,
+            Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+                static fn($socket) => $socket,
+                static fn() => null,
+            ),
+        );
     }
 
     public function testResource()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertIsResource($unix->resource());
         $this->assertSame('stream', \get_resource_type($unix->resource()));
@@ -65,7 +86,10 @@ class UnixTest extends TestCase
 
     public function testClose()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertFalse($unix->closed());
         $this->assertFileExists('/tmp/foo.sock');
@@ -76,7 +100,10 @@ class UnixTest extends TestCase
 
     public function testPosition()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Position::class, $unix->position());
         $this->assertSame(0, $unix->position()->toInt());
@@ -86,26 +113,38 @@ class UnixTest extends TestCase
     {
         $this->expectException(SocketNotSeekable::class);
 
-        Unix::recoverable(new Address(Path::of('/tmp/foo')))->seek(new Position(0));
+        Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket->seek(new Position(0)),
+            static fn() => null,
+        );
     }
 
     public function testThrowWhenRewinding()
     {
         $this->expectException(SocketNotSeekable::class);
 
-        Unix::recoverable(new Address(Path::of('/tmp/foo')))->rewind();
+        Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket->rewind(),
+            static fn() => null,
+        );
     }
 
     public function testEnd()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertFalse($unix->end());
     }
 
     public function testSize()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertFalse($unix->knowsSize());
 

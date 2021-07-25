@@ -29,14 +29,20 @@ class InternetTest extends TestCase
 
     public function setUp(): void
     {
-        $this->server = new Server(
+        $this->server = Server::of(
             Transport::tcp(),
             IPv4::of('127.0.0.1'),
             Port::of(1234),
+        )->match(
+            static fn($server) => $server,
+            static fn() => null,
         );
-        $this->client = new Internet(
+        $this->client = Internet::of(
             Transport::tcp(),
             Url::of('//127.0.0.1:1234')->authority(),
+        )->match(
+            static fn($client) => $client,
+            static fn() => null,
         );
     }
 
@@ -53,9 +59,12 @@ class InternetTest extends TestCase
 
     public function testClientWithOptions()
     {
-        $client = new Internet(
+        $client = Internet::of(
             Transport::tcp()->withOption('verify_host', true),
             Url::of('//127.0.0.1:1234')->authority()
+        )->match(
+            static fn($client) => $client,
+            static fn() => null,
         );
 
         $this->assertInstanceOf(Client::class, $client);

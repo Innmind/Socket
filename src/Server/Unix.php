@@ -6,7 +6,6 @@ namespace Innmind\Socket\Server;
 use Innmind\Socket\{
     Server,
     Address\Unix as Address,
-    Exception\FailedToOpenSocket,
     Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
@@ -25,38 +24,44 @@ final class Unix implements Server
     private $resource;
     private Stream $stream;
 
-    public function __construct(Address $path)
+    /**
+     * @param resource $socket
+     */
+    private function __construct(Address $path, $socket)
     {
         $this->path = $path->toString();
-        $socket = @\stream_socket_server('unix://'.$path->toString());
-
-        if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedToOpenSocket(
-                $error['message'],
-                $error['type'],
-            );
-        }
-
         $this->resource = $socket;
         $this->stream = new Stream($socket);
     }
 
     /**
+     * @return Maybe<self>
+     */
+    public static function of(Address $path): Maybe
+    {
+        $socket = @\stream_socket_server('unix://'.$path->toString());
+
+        if ($socket === false) {
+            /** @var Maybe<self> */
+            return Maybe::nothing();
+        }
+
+        return Maybe::just(new self($path, $socket));
+    }
+
+    /**
      * On open failure it will try to delete existing socket file the ntry to
      * reopen the socket connection
+     *
+     * @return Maybe<self>
      */
-    public static function recoverable(Address $path): self
+    public static function recoverable(Address $path): Maybe
     {
-        try {
-            return new self($path);
-        } catch (FailedToOpenSocket $e) {
+        return self::of($path)->otherwise(static function() use ($path) {
             @\unlink($path->toString());
 
-            return new self($path);
-        }
+            return self::of($path);
+        });
     }
 
     public function accept(): Maybe
