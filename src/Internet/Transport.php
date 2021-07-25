@@ -22,7 +22,7 @@ final class Transport
 
         $this->transport = $transport;
         /** @var Map<string, scalar|array> */
-        $this->options = Map::of('string', 'scalar|array');
+        $this->options = Map::of();
     }
 
     public static function tcp(): self

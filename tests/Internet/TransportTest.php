@@ -19,8 +19,6 @@ class TransportTest extends TestCase
         $this->assertInstanceOf(Transport::class, $transport);
         $this->assertSame($expected, $transport->toString());
         $this->assertInstanceOf(Map::class, $transport->options());
-        $this->assertSame('string', $transport->options()->keyType());
-        $this->assertSame('scalar|array', $transport->options()->valueType());
         $this->assertCount(0, $transport->options());
     }
 
@@ -35,7 +33,10 @@ class TransportTest extends TestCase
         $this->assertSame('ssl', $transport2->toString());
         $this->assertCount(0, $transport->options());
         $this->assertCount(1, $transport2->options());
-        $this->assertSame(42, $transport2->options()->get('foo'));
+        $this->assertSame(42, $transport2->options()->get('foo')->match(
+            static fn($foo) => $foo,
+            static fn() => null,
+        ));
     }
 
     public function cases(): array

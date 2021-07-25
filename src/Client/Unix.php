@@ -14,7 +14,6 @@ use Innmind\Stream\{
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize,
 };
 use Innmind\Immutable\{
     Str,
@@ -93,14 +92,10 @@ final class Unix implements Client
         return $this->stream->end();
     }
 
-    public function size(): Size
+    public function size(): Maybe
     {
-        throw new UnknownSize;
-    }
-
-    public function knowsSize(): bool
-    {
-        return false;
+        /** @var Maybe<Size> */
+        return Maybe::nothing();
     }
 
     public function read(int $length = null): Str

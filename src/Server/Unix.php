@@ -13,7 +13,6 @@ use Innmind\Stream\{
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize,
 };
 use Innmind\Immutable\Maybe;
 
@@ -115,13 +114,9 @@ final class Unix implements Server
         return $this->stream->end();
     }
 
-    public function size(): Size
+    public function size(): Maybe
     {
-        throw new UnknownSize;
-    }
-
-    public function knowsSize(): bool
-    {
-        return false;
+        /** @var Maybe<Size> */
+        return Maybe::nothing();
     }
 }

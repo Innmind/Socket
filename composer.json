@@ -16,11 +16,13 @@
     },
     "require": {
         "php": "~8.0",
-        "innmind/stream": "~2.0",
-        "innmind/immutable": "~3.0",
+        "innmind/stream": "dev-next",
+        "innmind/immutable": "dev-next",
         "innmind/ip": "~2.0",
-        "innmind/url": "~3.0"
+        "innmind/url": "dev-next"
     },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
     "autoload": {
         "psr-4": {
             "Innmind\\Socket\\": "src/"

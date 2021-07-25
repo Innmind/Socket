@@ -10,10 +10,7 @@ use Innmind\Socket\{
     Internet\Transport,
     Exception\SocketNotSeekable,
 };
-use Innmind\Stream\{
-    Stream\Position,
-    Exception\UnknownSize
-};
+use Innmind\Stream\Stream\Position;
 use Innmind\IP\IPv4;
 use Innmind\Url\Authority\Port;
 use Symfony\Component\Process\Process;
@@ -96,13 +93,9 @@ class InternetTest extends TestCase
 
     public function testSize()
     {
-        $this->assertFalse($this->server->knowsSize());
-
-        try {
-            $this->server->size();
-            $this->fail('it should throw');
-        } catch (UnknownSize $e) {
-            $this->assertTrue(true);
-        }
+        $this->assertFalse($this->server->size()->match(
+            static fn() => true,
+            static fn() => false,
+        ));
     }
 }

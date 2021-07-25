@@ -10,10 +10,7 @@ use Innmind\Socket\{
     Server\Unix as Server,
     Exception\SocketNotSeekable,
 };
-use Innmind\Stream\{
-    Stream\Position,
-    Exception\UnknownSize
-};
+use Innmind\Stream\Stream\Position;
 use Innmind\Url\Path;
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -86,14 +83,10 @@ class UnixTest extends TestCase
 
     public function testSize()
     {
-        $this->assertFalse($this->client->knowsSize());
-
-        try {
-            $this->client->size();
-            $this->fail('it should throw');
-        } catch (UnknownSize $e) {
-            $this->assertTrue(true);
-        }
+        $this->assertFalse($this->client->size()->match(
+            static fn() => true,
+            static fn() => false,
+        ));
     }
 
     public function testRead()

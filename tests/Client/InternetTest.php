@@ -110,14 +110,10 @@ class InternetTest extends TestCase
 
     public function testSize()
     {
-        $this->assertFalse($this->client->knowsSize());
-
-        try {
-            $this->client->size();
-            $this->fail('it should throw');
-        } catch (UnknownSize $e) {
-            $this->assertTrue(true);
-        }
+        $this->assertFalse($this->client->size()->match(
+            static fn() => true,
+            static fn() => false,
+        ));
     }
 
     public function testRead()
