@@ -14,7 +14,6 @@ final class Transport
 
     private function __construct(string $transport)
     {
-        /** @var list<string> */
         $allowed = \stream_get_transports();
 
         if (!\in_array($transport, $allowed, true)) {
