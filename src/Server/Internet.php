@@ -7,7 +7,6 @@ use Innmind\Socket\{
     Server,
     Internet\Transport,
     Exception\FailedToOpenSocket,
-    Exception\FailedAcceptingIncomingConnection,
     Exception\SocketNotSeekable
 };
 use Innmind\Stream\{
@@ -19,6 +18,7 @@ use Innmind\Stream\{
 };
 use Innmind\IP\IP;
 use Innmind\Url\Authority\Port;
+use Innmind\Immutable\Maybe;
 
 final class Internet implements Server
 {
@@ -52,21 +52,17 @@ final class Internet implements Server
         $this->stream = new Stream($socket);
     }
 
-    public function accept(): Connection
+    public function accept(): Maybe
     {
         $socket = @\stream_socket_accept($this->resource());
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedAcceptingIncomingConnection(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<Connection> */
+            return Maybe::nothing();
         }
 
-        return new Connection\Stream($socket);
+        /** @var Maybe<Connection> */
+        return Maybe::just(new Connection\Stream($socket));
     }
 
     public function resource()

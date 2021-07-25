@@ -47,7 +47,10 @@ class InternetTest extends TestCase
         $process = new Process(['php', 'fixtures/tcpClient.php']);
         $process->run();
 
-        $this->assertInstanceOf(Connection::class, $this->server->accept());
+        $this->assertInstanceOf(Connection::class, $this->server->accept()->match(
+            static fn($connection) => $connection,
+            static fn() => null,
+        ));
     }
 
     public function testResource()

@@ -35,7 +35,10 @@ class UnixTest extends TestCase
         $process = new Process(['php', 'fixtures/unixClient.php']);
         $process->run();
 
-        $this->assertInstanceOf(Connection::class, $unix->accept());
+        $this->assertInstanceOf(Connection::class, $unix->accept()->match(
+            static fn($connection) => $connection,
+            static fn() => null,
+        ));
     }
 
     public function testRecoverable()

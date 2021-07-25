@@ -114,7 +114,10 @@ class InternetTest extends TestCase
     public function testRead()
     {
         $this->client->write(Str::of('foobar'));
-        $this->server->accept()->write(Str::of('foobar'));
+        $this->server->accept()->match(
+            static fn($connection) => $connection->write(Str::of('foobar')),
+            static fn() => null,
+        );
         $text = $this->client->read(3);
 
         $this->assertInstanceOf(Str::class, $text);
@@ -125,7 +128,10 @@ class InternetTest extends TestCase
     public function testReadRemaining()
     {
         $this->client->write(Str::of('foobar'));
-        $this->server->accept()->write(Str::of('foobar'));
+        $this->server->accept()->match(
+            static fn($connection) => $connection->write(Str::of('foobar')),
+            static fn() => null,
+        );
         $text = $this->client->read();
 
         $this->assertInstanceOf(Str::class, $text);
@@ -136,7 +142,10 @@ class InternetTest extends TestCase
     public function testReadLine()
     {
         $this->client->write(Str::of('foobar'));
-        $this->server->accept()->write(Str::of("foo\nbar"));
+        $this->server->accept()->match(
+            static fn($connection) => $connection->write(Str::of("foo\nbar")),
+            static fn() => null,
+        );
         $text = $this->client->readLine();
 
         $this->assertInstanceOf(Str::class, $text);
@@ -147,7 +156,10 @@ class InternetTest extends TestCase
     public function testWrite()
     {
         $this->client->write(Str::of('foobar'));
-        $text = $this->server->accept()->read();
+        $text = $this->server->accept()->match(
+            static fn($connection) => $connection->read(),
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame('foobar', $text->toString());
@@ -161,7 +173,10 @@ class InternetTest extends TestCase
     public function testClosedWhenServerConnectionClosed()
     {
         $this->assertFalse($this->client->closed());
-        $connection = $this->server->accept();
+        $connection = $this->server->accept()->match(
+            static fn($connection) => $connection,
+            static fn() => null,
+        );
         $this->assertFalse($this->client->closed());
         $connection->close();
         $this->assertTrue($this->client->closed());

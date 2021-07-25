@@ -5,8 +5,12 @@ namespace Innmind\Socket;
 
 use Innmind\Socket\Server\Connection;
 use Innmind\Stream\Selectable;
+use Innmind\Immutable\Maybe;
 
 interface Server extends Selectable
 {
-    public function accept(): Connection;
+    /**
+     * @return Maybe<Connection>
+     */
+    public function accept(): Maybe;
 }
