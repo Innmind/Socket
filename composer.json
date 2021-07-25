@@ -18,7 +18,6 @@
         "php": "~7.4|~8.0",
         "innmind/stream": "~2.0",
         "innmind/immutable": "~3.0",
-        "innmind/event-bus": "~4.0",
         "innmind/ip": "~2.0",
         "innmind/url": "~3.0"
     },
