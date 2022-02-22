@@ -21,25 +21,30 @@ Server example:
 ```php
 use Innmind\Socket\{
     Server\Unix,
-    Serve,
     Address\Unix as Address,
 };
-use Innmind\Stream\Watch;
-use Innmind\EventBus\EventBus;
+use Innmind\TimeContinuum\Earth\ElapsedPeriod;
+use Innmind\Stream\Watch\Select;
 
-$server = Unix::recoverable(Address::of('/tmp/my-socket'));
-$serve = new Serve(
-    new EventBus(/* see library for documentation */),
-    /* an instance of Watch */
+$server = Unix::recoverable(Address::of('/tmp/my-socket'))->match(
+    static fn($server) => $server,
+    static fn() => throw new \RuntimeException('Unable to create socket'),
 );
-$serve($server);
+$select = Select::timeoutAfter(new ElapsedPeriod(100))
+    ->forRead($server);
+
+do {
+    $select()
+        ->flatMap(fn($ready) => $ready->toRead()->find(fn($stream) => $stream === $server))
+        ->flatMap(fn($server) => $server->accept())
+        ->match(
+            static fn($incomingConnection) => $doSomething($incomingConnection),
+            static fn() => null, // no incoming connection within the last 100 milliseconds
+        )
+} while (true);
 ```
 
-The example above creates a socket at `/tmp/my-socket.sock` and will wait indefinitely. The loop will dispatch those events as soon as the data arrive:
-
-* [`ConnectionReceived`](src/Event/ConnectionReceived.php)
-* [`ConnectionClosed`](src/Event/ConnectionClosed.php)
-* [`ConnectionReady`](src/Event/ConnectionReady.php)
+The example above creates a socket at `/tmp/my-socket.sock` and will wait indefinitely. It will call `$doSomething()` with an incoming connection as soon as one is available.
 
 Client example:
 
@@ -49,8 +54,14 @@ use Innmind\Socket\{
     Address\Unix as Address,
 };
 
-$client = new Client(Address::of('/tmp/my-socket'));
-$client->write(Str::of('hello there!'));
+$client = Unix::of(Address::of('/tmp/my-socket'))->match(
+    static fn($client) => $client,
+    static fn() => throw new \RuntimeException('Unable to connect to socket'),
+);
+$client->write(Str::of('hello there!'))->match(
+    static fn($client) => $continueToDoSomething($client),
+    static fn($error) => null, // do something else when it failed to write to the socket
+);
 ```
 
 This will simply connect to the socket server declared above and will send the data `hello there!`.
@@ -69,7 +80,7 @@ use Innmind\Socket\{
 use Innmind\IP\IPv4;
 use Innmind\Url\Authority\Port;
 
-$server = new Internet(
+$server = Internet::of(
     Transport::tcp(),
     IPv4::of('127.0.0.1'),
     Port::of(80),
@@ -86,61 +97,9 @@ use Innmind\Socket\{
 };
 use Innmind\Url\Url;
 
-$client = new Client(
+$client = Internet::of(
     Transport::tcp(),
     Url::of('//127.0.0.1:80')->authority(),
 );
 //this will connect to a local socket on port 80
-```
-
-### Loop lifetime
-
-By default the [`Serve`](src/Serve.php) use the [`Infinite`](src/Loop/Strategy/Infinite.php) strategy but you can easily build your own.
-
-Let's say you don't want your loop to run more than an hour, you need to create a strategy like this:
-
-```php
-use Innmind\Socket\Loop\Strategy;
-use Innmind\TimeContinuum\{
-    Clock,
-    Earth\ElapsedPeriod,
-};
-
-final class RunForAnHour implements Strategy
-{
-    private $start;
-    private $clock;
-    private $threshold;
-
-    public function __construct(Clock $clock)
-    {
-        $this->start = $clock->now();
-        $this->clock = $clock;
-        $this->threshold = new ElapsedPeriod(
-            60 * 60 * 1000 //an hour
-        );
-    }
-
-    public function __invoke(): bool
-    {
-        return $this->threshold->longerThan(
-            $this
-                ->clock
-                ->now()
-                ->elapsedSince($this->start)
-        );
-    }
-}
-```
-
-Then build your loop with your strategy:
-
-```php
-use Innmind\TimeContinuum\Earth\Clock;
-
-$loop = new Serve(
-    new EventBus(/**/),
-    /* instance of Watch */,
-    new RunForAnHour(new Clock)
-);
 ```

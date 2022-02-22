@@ -8,11 +8,10 @@ use Innmind\Socket\{
     Client,
     Internet\Transport,
     Server\Internet as Server,
-    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Position,
-    Exception\UnknownSize,
+    PositionNotSeekable,
 };
 use Innmind\IP\IPv4;
 use Innmind\Url\{
@@ -29,14 +28,20 @@ class InternetTest extends TestCase
 
     public function setUp(): void
     {
-        $this->server = new Server(
+        $this->server = Server::of(
             Transport::tcp(),
             IPv4::of('127.0.0.1'),
             Port::of(1234),
+        )->match(
+            static fn($server) => $server,
+            static fn() => null,
         );
-        $this->client = new Internet(
+        $this->client = Internet::of(
             Transport::tcp(),
             Url::of('//127.0.0.1:1234')->authority(),
+        )->match(
+            static fn($client) => $client,
+            static fn() => null,
         );
     }
 
@@ -53,9 +58,12 @@ class InternetTest extends TestCase
 
     public function testClientWithOptions()
     {
-        $client = new Internet(
+        $client = Internet::of(
             Transport::tcp()->withOption('verify_host', true),
-            Url::of('//127.0.0.1:1234')->authority()
+            Url::of('//127.0.0.1:1234')->authority(),
+        )->match(
+            static fn($client) => $client,
+            static fn() => null,
         );
 
         $this->assertInstanceOf(Client::class, $client);
@@ -70,7 +78,10 @@ class InternetTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->client->closed());
-        $this->assertNull($this->client->close());
+        $this->assertNull($this->client->close()->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertTrue($this->client->closed());
     }
 
@@ -80,18 +91,26 @@ class InternetTest extends TestCase
         $this->assertSame(0, $this->client->position()->toInt());
     }
 
-    public function testThrowWhenSeeking()
+    public function testReturnErrorWhenSeeking()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->client->seek(new Position(0));
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->client->seek(new Position(0))->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
-    public function testThrowWhenRewinding()
+    public function testReturnErrorWhenRewinding()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->client->rewind();
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->client->rewind()->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
     public function testEnd()
@@ -101,53 +120,82 @@ class InternetTest extends TestCase
 
     public function testSize()
     {
-        $this->assertFalse($this->client->knowsSize());
-
-        try {
-            $this->client->size();
-            $this->fail('it should throw');
-        } catch (UnknownSize $e) {
-            $this->assertTrue(true);
-        }
+        $this->assertFalse($this->client->size()->match(
+            static fn() => true,
+            static fn() => false,
+        ));
     }
 
     public function testRead()
     {
         $this->client->write(Str::of('foobar'));
-        $this->server->accept()->write(Str::of('foobar'));
-        $text = $this->client->read(3);
+        $this->server->accept()->match(
+            static fn($connection) => $connection->write(Str::of('foobar')),
+            static fn() => null,
+        );
+        $text = $this->client->read(3)->match(
+            static fn($text) => $text,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame('foo', $text->toString());
-        $this->assertSame('bar', $this->client->read(3)->toString());
+        $this->assertSame('bar', $this->client->read(3)->match(
+            static fn($text) => $text->toString(),
+            static fn() => null,
+        ));
     }
 
     public function testReadRemaining()
     {
         $this->client->write(Str::of('foobar'));
-        $this->server->accept()->write(Str::of('foobar'));
-        $text = $this->client->read();
+        $this->server->accept()->match(
+            static fn($connection) => $connection->write(Str::of('foobar')),
+            static fn() => null,
+        );
+        $text = $this->client->read()->match(
+            static fn($text) => $text,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame('foobar', $text->toString());
-        $this->assertSame('', $this->client->read(3)->toString());
+        $this->assertSame('', $this->client->read(3)->match(
+            static fn($remaining) => $remaining->toString(),
+            static fn() => null,
+        ));
     }
 
     public function testReadLine()
     {
         $this->client->write(Str::of('foobar'));
-        $this->server->accept()->write(Str::of("foo\nbar"));
-        $text = $this->client->readLine();
+        $this->server->accept()->match(
+            static fn($connection) => $connection->write(Str::of("foo\nbar")),
+            static fn() => null,
+        );
+        $text = $this->client->readLine()->match(
+            static fn($line) => $line,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame("foo\n", $text->toString());
-        $this->assertSame('bar', $this->client->readLine()->toString());
+        $this->assertSame('bar', $this->client->readLine()->match(
+            static fn($line) => $line->toString(),
+            static fn() => null,
+        ));
     }
 
     public function testWrite()
     {
         $this->client->write(Str::of('foobar'));
-        $text = $this->server->accept()->read();
+        $text = $this->server->accept()->match(
+            static fn($connection) => $connection->read()->match(
+                static fn($remaining) => $remaining,
+                static fn() => null,
+            ),
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame('foobar', $text->toString());
@@ -155,15 +203,21 @@ class InternetTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('127.0.0.1:1234', $this->client->toString());
+        $this->assertNull($this->client->toString()->match(
+            static fn($address) => $address,
+            static fn() => null,
+        ));
     }
 
-    public function testClosedWhenServerConnectionClosed()
+    public function testEndWhenServerConnectionClosed()
     {
         $this->assertFalse($this->client->closed());
-        $connection = $this->server->accept();
+        $connection = $this->server->accept()->match(
+            static fn($connection) => $connection,
+            static fn() => null,
+        );
         $this->assertFalse($this->client->closed());
         $connection->close();
-        $this->assertTrue($this->client->closed());
+        $this->assertTrue($this->client->end());
     }
 }

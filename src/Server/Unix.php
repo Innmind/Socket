@@ -6,16 +6,18 @@ namespace Innmind\Socket\Server;
 use Innmind\Socket\{
     Server,
     Address\Unix as Address,
-    Exception\FailedToOpenSocket,
-    Exception\FailedAcceptingIncomingConnection,
-    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Stream,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize,
+    PositionNotSeekable,
+};
+use Innmind\Immutable\{
+    Maybe,
+    Either,
+    SideEffect,
 };
 
 final class Unix implements Server
@@ -25,70 +27,86 @@ final class Unix implements Server
     private $resource;
     private Stream $stream;
 
-    public function __construct(Address $path)
+    /**
+     * @param resource $socket
+     */
+    private function __construct(Address $path, $socket)
     {
         $this->path = $path->toString();
+        $this->resource = $socket;
+        $this->stream = Stream::of($socket);
+    }
+
+    /**
+     * @return Maybe<self>
+     */
+    public static function of(Address $path): Maybe
+    {
         $socket = @\stream_socket_server('unix://'.$path->toString());
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedToOpenSocket(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<self> */
+            return Maybe::nothing();
         }
 
-        $this->resource = $socket;
-        $this->stream = new Stream($socket);
+        return Maybe::just(new self($path, $socket));
     }
 
     /**
      * On open failure it will try to delete existing socket file the ntry to
      * reopen the socket connection
+     *
+     * @return Maybe<self>
      */
-    public static function recoverable(Address $path): self
+    public static function recoverable(Address $path): Maybe
     {
-        try {
-            return new self($path);
-        } catch (FailedToOpenSocket $e) {
+        return self::of($path)->otherwise(static function() use ($path) {
             @\unlink($path->toString());
 
-            return new self($path);
-        }
+            return self::of($path);
+        });
     }
 
-    public function accept(): Connection
+    public function accept(): Maybe
     {
         $socket = @\stream_socket_accept($this->resource());
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedAcceptingIncomingConnection(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<Connection> */
+            return Maybe::nothing();
         }
 
-        return new Connection\Stream($socket);
+        /** @var Maybe<Connection> */
+        return Maybe::just(Connection\Stream::of($socket));
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function resource()
     {
         return $this->resource;
     }
 
-    public function close(): void
+    public function close(): Either
     {
         if (!$this->closed()) {
-            $this->stream->close();
-            @\unlink($this->path);
+            return $this
+                ->stream
+                ->close()
+                ->map(function($sideEffect) {
+                    @\unlink($this->path);
+
+                    return $sideEffect;
+                });
         }
+
+        return Either::right(new SideEffect);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         return $this->stream->closed();
@@ -99,28 +117,30 @@ final class Unix implements Server
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
-    public function size(): Size
+    /**
+     * @psalm-mutation-free
+     */
+    public function size(): Maybe
     {
-        throw new UnknownSize;
-    }
-
-    public function knowsSize(): bool
-    {
-        return false;
+        /** @var Maybe<Size> */
+        return Maybe::nothing();
     }
 }

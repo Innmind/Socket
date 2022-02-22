@@ -8,11 +8,10 @@ use Innmind\Socket\{
     Server,
     Server\Connection,
     Address\Unix as Address,
-    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Position,
-    Exception\UnknownSize,
+    PositionNotSeekable,
 };
 use Innmind\Url\Path;
 use Symfony\Component\Process\Process;
@@ -23,7 +22,10 @@ class UnixTest extends TestCase
     public function testInterface()
     {
         @\unlink('/tmp/foo.sock');
-        $unix = new Unix(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::of(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Server::class, $unix);
     }
@@ -31,16 +33,28 @@ class UnixTest extends TestCase
     public function testAccept()
     {
         @\unlink('/tmp/unix.sock');
-        $unix = new Unix(new Address(Path::of('/tmp/unix')));
+        $unix = Unix::of(new Address(Path::of('/tmp/unix')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
         $process = new Process(['php', 'fixtures/unixClient.php']);
         $process->run();
 
-        $this->assertInstanceOf(Connection::class, $unix->accept());
+        $this->assertInstanceOf(Connection::class, $unix->accept()->match(
+            static fn($connection) => $connection,
+            static fn() => null,
+        ));
     }
 
     public function testRecoverable()
     {
-        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address(Path::of('/tmp/foo'))));
+        $this->assertInstanceOf(
+            Unix::class,
+            Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+                static fn($socket) => $socket,
+                static fn() => null,
+            ),
+        );
     }
 
     public function testRecoverableWhenSockFileExisting()
@@ -49,12 +63,21 @@ class UnixTest extends TestCase
         $socket = \stream_socket_server('unix:///tmp/foo.sock');
         \fclose($socket);
 
-        $this->assertInstanceOf(Unix::class, Unix::recoverable(new Address(Path::of('/tmp/foo'))));
+        $this->assertInstanceOf(
+            Unix::class,
+            Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+                static fn($socket) => $socket,
+                static fn() => null,
+            ),
+        );
     }
 
     public function testResource()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertIsResource($unix->resource());
         $this->assertSame('stream', \get_resource_type($unix->resource()));
@@ -62,55 +85,84 @@ class UnixTest extends TestCase
 
     public function testClose()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertFalse($unix->closed());
         $this->assertFileExists('/tmp/foo.sock');
-        $this->assertNull($unix->close());
+        $this->assertNull($unix->close()->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertTrue($unix->closed());
         $this->assertFileDoesNotExist('/tmp/foo.sock');
     }
 
     public function testPosition()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Position::class, $unix->position());
         $this->assertSame(0, $unix->position()->toInt());
     }
 
-    public function testThrowWhenSeeking()
+    public function testReturnErrorWhenSeeking()
     {
-        $this->expectException(SocketNotSeekable::class);
+        $either = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket->seek(new Position(0)),
+            static fn() => null,
+        );
 
-        Unix::recoverable(new Address(Path::of('/tmp/foo')))->seek(new Position(0));
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $either->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
-    public function testThrowWhenRewinding()
+    public function testReturnErrorWhenRewinding()
     {
-        $this->expectException(SocketNotSeekable::class);
+        $either = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket->rewind(),
+            static fn() => null,
+        );
 
-        Unix::recoverable(new Address(Path::of('/tmp/foo')))->rewind();
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $either->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
     public function testEnd()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
         $this->assertFalse($unix->end());
     }
 
     public function testSize()
     {
-        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')));
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+            static fn($socket) => $socket,
+            static fn() => null,
+        );
 
-        $this->assertFalse($unix->knowsSize());
-
-        try {
-            $unix->size();
-            $this->fail('it should throw');
-        } catch (UnknownSize $e) {
-            $this->assertTrue(true);
-        }
+        $this->assertFalse($unix->size()->match(
+            static fn() => true,
+            static fn() => false,
+        ));
     }
 }

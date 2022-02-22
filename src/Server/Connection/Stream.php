@@ -5,41 +5,59 @@ namespace Innmind\Socket\Server\Connection;
 
 use Innmind\Socket\{
     Server\Connection,
-    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
+    Writable,
     Stream\Bidirectional,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize,
+    PositionNotSeekable,
+    DataPartiallyWritten,
+    FailedToWriteToStream,
 };
-use Innmind\Immutable\Str;
+use Innmind\Immutable\{
+    Str,
+    Maybe,
+    Either,
+};
 
 final class Stream implements Connection
 {
     private Bidirectional $stream;
-    private string $name;
 
     /**
      * @param resource $resource
      */
-    public function __construct($resource)
+    private function __construct($resource)
     {
-        $this->stream = new Bidirectional($resource);
-        $this->name = \stream_socket_get_name($resource, false) ?: '';
+        $this->stream = Bidirectional::of($resource);
     }
 
+    /**
+     * @param resource $resource
+     */
+    public static function of($resource): self
+    {
+        return new self($resource);
+    }
+
+    /**
+     * @psalm-mutation-free
+     */
     public function resource()
     {
         return $this->stream->resource();
     }
 
-    public function close(): void
+    public function close(): Either
     {
-        $this->stream->close();
+        return $this->stream->close();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         return $this->stream->closed();
@@ -50,48 +68,55 @@ final class Stream implements Connection
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
-    public function size(): Size
+    /**
+     * @psalm-mutation-free
+     */
+    public function size(): Maybe
     {
-        throw new UnknownSize;
+        /** @var Maybe<Size> */
+        return Maybe::nothing();
     }
 
-    public function knowsSize(): bool
-    {
-        return false;
-    }
-
-    public function read(int $length = null): Str
+    public function read(int $length = null): Maybe
     {
         return $this->stream->read($length);
     }
 
-    public function readLine(): Str
+    public function readLine(): Maybe
     {
         return $this->stream->readLine();
     }
 
-    public function write(Str $data): void
+    public function write(Str $data): Either
     {
-        $this->stream->write($data);
+        /** @var Either<DataPartiallyWritten|FailedToWriteToStream, Writable> */
+        return $this
+            ->stream
+            ->write($data)
+            ->map(fn() => $this);
     }
 
-    public function toString(): string
+    public function toString(): Maybe
     {
-        return $this->name;
+        /** @var Maybe<string> */
+        return Maybe::nothing();
     }
 }
