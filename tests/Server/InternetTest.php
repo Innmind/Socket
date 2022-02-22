@@ -27,7 +27,7 @@ class InternetTest extends TestCase
         $this->server = Internet::of(
             Transport::tcp(),
             IPv4::of('127.0.0.1'),
-            Port::of(1234)
+            Port::of(1234),
         )->match(
             static fn($server) => $server,
             static fn() => null,

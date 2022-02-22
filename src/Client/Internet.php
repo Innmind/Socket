@@ -67,7 +67,7 @@ final class Internet implements Client
                     \stream_context_set_option($socket, $transport->toString(), $key, $value);
 
                     return $socket;
-                }
+                },
             );
 
         return Maybe::just(new self($socket));

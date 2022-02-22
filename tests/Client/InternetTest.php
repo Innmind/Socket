@@ -60,7 +60,7 @@ class InternetTest extends TestCase
     {
         $client = Internet::of(
             Transport::tcp()->withOption('verify_host', true),
-            Url::of('//127.0.0.1:1234')->authority()
+            Url::of('//127.0.0.1:1234')->authority(),
         )->match(
             static fn($client) => $client,
             static fn() => null,

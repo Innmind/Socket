@@ -53,7 +53,7 @@ class UnixTest extends TestCase
             Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
                 static fn($socket) => $socket,
                 static fn() => null,
-            )
+            ),
         );
     }
 

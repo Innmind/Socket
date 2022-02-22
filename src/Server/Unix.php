@@ -94,7 +94,7 @@ final class Unix implements Server
             return $this
                 ->stream
                 ->close()
-                ->map(function ($sideEffect) {
+                ->map(function($sideEffect) {
                     @\unlink($this->path);
 
                     return $sideEffect;
