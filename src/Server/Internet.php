@@ -6,17 +6,20 @@ namespace Innmind\Socket\Server;
 use Innmind\Socket\{
     Server,
     Internet\Transport,
-    Exception\SocketNotSeekable
 };
 use Innmind\Stream\{
     Stream\Stream,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
+    PositionNotSeekable,
 };
 use Innmind\IP\IP;
 use Innmind\Url\Authority\Port;
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    Either,
+};
 
 final class Internet implements Server
 {
@@ -30,7 +33,7 @@ final class Internet implements Server
     private function __construct($socket)
     {
         $this->resource = $socket;
-        $this->stream = new Stream($socket);
+        $this->stream = Stream::of($socket);
     }
 
     /**
@@ -69,16 +72,22 @@ final class Internet implements Server
         return Maybe::just(new Connection\Stream($socket));
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function resource()
     {
         return $this->resource;
     }
 
-    public function close(): void
+    public function close(): Either
     {
-        $this->stream->close();
+        return $this->stream->close();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         return $this->stream->closed();
@@ -89,21 +98,27 @@ final class Internet implements Server
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function size(): Maybe
     {
         /** @var Maybe<Size> */

@@ -8,9 +8,11 @@ use Innmind\Socket\{
     Client,
     Address\Unix as Address,
     Server\Unix as Server,
-    Exception\SocketNotSeekable,
 };
-use Innmind\Stream\Stream\Position;
+use Innmind\Stream\{
+    Stream\Position,
+    PositionNotSeekable,
+};
 use Innmind\Url\Path;
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -52,7 +54,10 @@ class UnixTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->client->closed());
-        $this->assertNull($this->client->close());
+        $this->assertNull($this->client->close()->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertTrue($this->client->closed());
     }
 
@@ -62,18 +67,26 @@ class UnixTest extends TestCase
         $this->assertSame(0, $this->client->position()->toInt());
     }
 
-    public function testThrowWhenSeeking()
+    public function testReturnErrorWhenSeeking()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->client->seek(new Position(0));
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->client->seek(new Position(0))->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
-    public function testThrowWhenRewinding()
+    public function testReturnErrorWhenRewinding()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->client->rewind();
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->client->rewind()->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
     public function testEnd()
@@ -96,11 +109,17 @@ class UnixTest extends TestCase
             static fn($connection) => $connection->write(Str::of('foobar')),
             static fn() => null,
         );
-        $text = $this->client->read(3);
+        $text = $this->client->read(3)->match(
+            static fn($text) => $text,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame('foo', $text->toString());
-        $this->assertSame('bar', $this->client->read(3)->toString());
+        $this->assertSame('bar', $this->client->read(3)->match(
+            static fn($text) => $text->toString(),
+            static fn() => null,
+        ));
     }
 
     public function testReadRemaining()
@@ -110,11 +129,17 @@ class UnixTest extends TestCase
             static fn($connection) => $connection->write(Str::of('foobar')),
             static fn() => null,
         );
-        $text = $this->client->read();
+        $text = $this->client->read()->match(
+            static fn($remaining) => $remaining,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame('foobar', $text->toString());
-        $this->assertSame('', $this->client->read(3)->toString());
+        $this->assertSame('', $this->client->read(3)->match(
+            static fn($text) => $text->toString(),
+            static fn() => null,
+        ));
     }
 
     public function testReadLine()
@@ -124,18 +149,27 @@ class UnixTest extends TestCase
             static fn($connection) => $connection->write(Str::of("foo\nbar")),
             static fn() => null,
         );
-        $text = $this->client->readLine();
+        $text = $this->client->readLine()->match(
+            static fn($line) => $line,
+            static fn() => null,
+        );
 
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame("foo\n", $text->toString());
-        $this->assertSame('bar', $this->client->readLine()->toString());
+        $this->assertSame('bar', $this->client->readLine()->match(
+            static fn($text) => $text->toString(),
+            static fn() => null,
+        ));
     }
 
     public function testWrite()
     {
         $this->client->write(Str::of('foobar'));
         $text = $this->server->accept()->match(
-            static fn($connection) => $connection->read(),
+            static fn($connection) => $connection->read()->match(
+                static fn($text) => $text,
+                static fn() => null,
+            ),
             static fn() => null,
         );
 
@@ -145,7 +179,10 @@ class UnixTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('/tmp/foo.sock', $this->client->toString());
+        $this->assertSame('/tmp/foo.sock', $this->client->toString()->match(
+            static fn($name) => $name,
+            static fn() => null,
+        ));
     }
 
     public function testClosedWhenServerConnectionClosed()

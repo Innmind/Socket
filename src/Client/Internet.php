@@ -6,7 +6,6 @@ namespace Innmind\Socket\Client;
 use Innmind\Socket\{
     Client,
     Internet\Transport,
-    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream,
@@ -14,11 +13,15 @@ use Innmind\Stream\{
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
+    PositionNotSeekable,
+    DataPartiallyWritten,
+    FailedToWriteToStream,
 };
 use Innmind\Url\Authority;
 use Innmind\Immutable\{
     Str,
     Maybe,
+    Either,
 };
 
 final class Internet implements Client
@@ -31,7 +34,7 @@ final class Internet implements Client
      */
     private function __construct($socket)
     {
-        $this->stream = new Stream\Bidirectional($socket);
+        $this->stream = Stream\Bidirectional::of($socket);
         $this->name = \stream_socket_get_name($socket, true);
     }
 
@@ -70,16 +73,22 @@ final class Internet implements Client
         return Maybe::just(new self($socket));
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function resource()
     {
         return $this->stream->resource();
     }
 
-    public function close(): void
+    public function close(): Either
     {
-        $this->stream->close();
+        return $this->stream->close();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         if ($this->stream->closed()) {
@@ -87,7 +96,11 @@ final class Internet implements Client
         }
 
         if ($this->stream->end()) {
-            $this->stream->close();
+            /** @psalm-suppress ImpureMethodCall Todo find a way to avoid this mutation */
+            return $this->stream->close()->match(
+                static fn() => true,
+                static fn() => false,
+            );
         }
 
         return $this->stream->closed();
@@ -98,44 +111,54 @@ final class Internet implements Client
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function size(): Maybe
     {
         /** @var Maybe<Size> */
         return Maybe::nothing();
     }
 
-    public function read(int $length = null): Str
+    public function read(int $length = null): Maybe
     {
         return $this->stream->read($length);
     }
 
-    public function readLine(): Str
+    public function readLine(): Maybe
     {
         return $this->stream->readLine();
     }
 
-    public function write(Str $data): void
+    public function write(Str $data): Either
     {
-        $this->stream->write($data);
+        /** @var Either<DataPartiallyWritten|FailedToWriteToStream, Writable> */
+        return $this
+            ->stream
+            ->write($data)
+            ->map(fn() => $this);
     }
 
-    public function toString(): string
+    public function toString(): Maybe
     {
-        return $this->name;
+        return Maybe::just($this->name);
     }
 }

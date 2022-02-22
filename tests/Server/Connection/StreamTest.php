@@ -8,9 +8,11 @@ use Innmind\Socket\{
     Server\Connection,
     Server\Unix,
     Address\Unix as Address,
-    Exception\SocketNotSeekable,
 };
-use Innmind\Stream\Stream\Position;
+use Innmind\Stream\{
+    Stream\Position,
+    PositionNotSeekable,
+};
 use Innmind\Url\Path;
 use Innmind\Immutable\Str;
 use PHPUnit\Framework\TestCase;
@@ -42,7 +44,10 @@ class StreamTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->stream->closed());
-        $this->assertNull($this->stream->close());
+        $this->assertNull($this->stream->close()->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertTrue($this->stream->closed());
     }
 
@@ -52,18 +57,26 @@ class StreamTest extends TestCase
         $this->assertSame(0, $this->stream->position()->toInt());
     }
 
-    public function testThrowWhenSeeking()
+    public function testReturnErrorWhenSeeking()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->stream->seek(new Position(0));
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->stream->seek(new Position(0))->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
-    public function testThrowWhenRewinding()
+    public function testReturnErrorWhenRewinding()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->stream->rewind();
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->stream->rewind()->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
     public function testEnd()
@@ -81,21 +94,30 @@ class StreamTest extends TestCase
 
     public function testRead()
     {
-        $text = $this->stream->read(3);
+        $text = $this->stream->read(3)->match(
+            static fn($text) => $text,
+            static fn() => null,
+        );
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame('foo', $text->toString());
     }
 
     public function testReadRemaining()
     {
-        $text = $this->stream->read();
+        $text = $this->stream->read()->match(
+            static fn($text) => $text,
+            static fn() => null,
+        );
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame("foo\nbar", $text->toString());
     }
 
     public function testReadLine()
     {
-        $text = $this->stream->readLine();
+        $text = $this->stream->readLine()->match(
+            static fn($text) => $text,
+            static fn() => null,
+        );
         $this->assertInstanceOf(Str::class, $text);
         $this->assertSame("foo\n", $text->toString());
     }
@@ -109,7 +131,10 @@ class StreamTest extends TestCase
         $client = \stream_socket_client('unix:///tmp/foo.sock');
         $stream = new Stream(\stream_socket_accept($server->resource()));
 
-        $this->assertNull($stream->write(Str::of('baz')));
+        $this->assertNull($stream->write(Str::of('baz'))->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertSame('baz', \fread($client, 3));
     }
 
@@ -122,6 +147,9 @@ class StreamTest extends TestCase
         \stream_socket_client('unix:///tmp/foo.sock');
         $stream = new Stream(\stream_socket_accept($server->resource()));
 
-        $this->assertSame('/tmp/foo.sock', $stream->toString());
+        $this->assertSame('/tmp/foo.sock', $stream->toString()->match(
+            static fn($text) => $text,
+            static fn() => null,
+        ));
     }
 }

@@ -8,9 +8,11 @@ use Innmind\Socket\{
     Server,
     Server\Connection,
     Internet\Transport,
-    Exception\SocketNotSeekable,
 };
-use Innmind\Stream\Stream\Position;
+use Innmind\Stream\{
+    Stream\Position,
+    PositionNotSeekable,
+};
 use Innmind\IP\IPv4;
 use Innmind\Url\Authority\Port;
 use Symfony\Component\Process\Process;
@@ -62,7 +64,10 @@ class InternetTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->server->closed());
-        $this->assertNull($this->server->close());
+        $this->assertNull($this->server->close()->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertTrue($this->server->closed());
     }
 
@@ -72,18 +77,26 @@ class InternetTest extends TestCase
         $this->assertSame(0, $this->server->position()->toInt());
     }
 
-    public function testThrowWhenSeeking()
+    public function testReturnErrorWhenSeeking()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->server->seek(new Position(0));
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->server->seek(new Position(0))->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
-    public function testThrowWhenRewinding()
+    public function testReturnErrorWhenRewinding()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->server->rewind();
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->server->rewind()->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
     public function testEnd()

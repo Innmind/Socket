@@ -8,9 +8,11 @@ use Innmind\Socket\{
     Server,
     Server\Connection,
     Address\Unix as Address,
-    Exception\SocketNotSeekable,
 };
-use Innmind\Stream\Stream\Position;
+use Innmind\Stream\{
+    Stream\Position,
+    PositionNotSeekable,
+};
 use Innmind\Url\Path;
 use Symfony\Component\Process\Process;
 use PHPUnit\Framework\TestCase;
@@ -90,7 +92,10 @@ class UnixTest extends TestCase
 
         $this->assertFalse($unix->closed());
         $this->assertFileExists('/tmp/foo.sock');
-        $this->assertNull($unix->close());
+        $this->assertNull($unix->close()->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertTrue($unix->closed());
         $this->assertFileDoesNotExist('/tmp/foo.sock');
     }
@@ -106,23 +111,35 @@ class UnixTest extends TestCase
         $this->assertSame(0, $unix->position()->toInt());
     }
 
-    public function testThrowWhenSeeking()
+    public function testReturnErrorWhenSeeking()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+        $either = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket->seek(new Position(0)),
             static fn() => null,
         );
+
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $either->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
-    public function testThrowWhenRewinding()
+    public function testReturnErrorWhenRewinding()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
+        $either = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket->rewind(),
             static fn() => null,
+        );
+
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $either->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
         );
     }
 

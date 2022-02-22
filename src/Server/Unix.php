@@ -6,15 +6,19 @@ namespace Innmind\Socket\Server;
 use Innmind\Socket\{
     Server,
     Address\Unix as Address,
-    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Stream,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
+    PositionNotSeekable,
 };
-use Innmind\Immutable\Maybe;
+use Innmind\Immutable\{
+    Maybe,
+    Either,
+    SideEffect,
+};
 
 final class Unix implements Server
 {
@@ -30,7 +34,7 @@ final class Unix implements Server
     {
         $this->path = $path->toString();
         $this->resource = $socket;
-        $this->stream = new Stream($socket);
+        $this->stream = Stream::of($socket);
     }
 
     /**
@@ -76,19 +80,33 @@ final class Unix implements Server
         return Maybe::just(new Connection\Stream($socket));
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function resource()
     {
         return $this->resource;
     }
 
-    public function close(): void
+    public function close(): Either
     {
         if (!$this->closed()) {
-            $this->stream->close();
-            @\unlink($this->path);
+            return $this
+                ->stream
+                ->close()
+                ->map(function ($sideEffect) {
+                    @\unlink($this->path);
+
+                    return $sideEffect;
+                });
         }
+
+        return Either::right(new SideEffect);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         return $this->stream->closed();
@@ -99,21 +117,27 @@ final class Unix implements Server
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function size(): Maybe
     {
         /** @var Maybe<Size> */
