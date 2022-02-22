@@ -53,7 +53,6 @@ final class Internet implements Client
         }
 
         /**
-         * @psalm-suppress MissingClosureParamType
          * @psalm-suppress MissingClosureReturnType
          * @var resource
          */
@@ -61,7 +60,7 @@ final class Internet implements Client
             ->options()
             ->reduce(
                 $socket,
-                static function($socket, string $key, $value) use ($transport) {
+                static function($socket, string $key, int|bool|float|string|array $value) use ($transport) {
                     \stream_context_set_option($socket, $transport->toString(), $key, $value);
 
                     return $socket;

@@ -9,7 +9,7 @@ use Innmind\Immutable\Map;
 final class Transport
 {
     private string $transport;
-    /** @var Map<string, scalar|array> */
+    /** @var Map<string, int|bool|float|string|array> */
     private Map $options;
 
     private function __construct(string $transport)
@@ -21,7 +21,7 @@ final class Transport
         }
 
         $this->transport = $transport;
-        /** @var Map<string, scalar|array> */
+        /** @var Map<string, int|bool|float|string|array> */
         $this->options = Map::of();
     }
 
@@ -67,10 +67,8 @@ final class Transport
 
     /**
      * @psalm-mutation-free
-     *
-     * @param scalar|array $value
      */
-    public function withOption(string $key, $value): self
+    public function withOption(string $key, int|bool|float|string|array $value): self
     {
         $self = clone $this;
         $self->options = ($this->options)($key, $value);
@@ -79,7 +77,7 @@ final class Transport
     }
 
     /**
-     * @return Map<string, scalar|array>
+     * @return Map<string, int|bool|float|string|array>
      */
     public function options(): Map
     {
