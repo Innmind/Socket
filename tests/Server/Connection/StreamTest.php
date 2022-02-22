@@ -27,7 +27,7 @@ class StreamTest extends TestCase
         \fwrite($resource, "foo\nbar");
         \fseek($resource, 0);
 
-        $this->stream = new Stream($resource);
+        $this->stream = Stream::of($resource);
     }
 
     public function testInterface()
@@ -129,7 +129,7 @@ class StreamTest extends TestCase
             static fn() => null,
         );
         $client = \stream_socket_client('unix:///tmp/foo.sock');
-        $stream = new Stream(\stream_socket_accept($server->resource()));
+        $stream = Stream::of(\stream_socket_accept($server->resource()));
 
         $this->assertNull($stream->write(Str::of('baz'))->match(
             static fn() => null,
@@ -145,7 +145,7 @@ class StreamTest extends TestCase
             static fn() => null,
         );
         \stream_socket_client('unix:///tmp/foo.sock');
-        $stream = new Stream(\stream_socket_accept($server->resource()));
+        $stream = Stream::of(\stream_socket_accept($server->resource()));
 
         $this->assertNull($stream->toString()->match(
             static fn($text) => $text,

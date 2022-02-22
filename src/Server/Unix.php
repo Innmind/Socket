@@ -77,7 +77,7 @@ final class Unix implements Server
         }
 
         /** @var Maybe<Connection> */
-        return Maybe::just(new Connection\Stream($socket));
+        return Maybe::just(Connection\Stream::of($socket));
     }
 
     /**

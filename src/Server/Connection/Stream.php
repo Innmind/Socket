@@ -29,9 +29,17 @@ final class Stream implements Connection
     /**
      * @param resource $resource
      */
-    public function __construct($resource)
+    private function __construct($resource)
     {
         $this->stream = Bidirectional::of($resource);
+    }
+
+    /**
+     * @param resource $resource
+     */
+    public static function of($resource): self
+    {
+        return new self($resource);
     }
 
     /**

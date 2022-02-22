@@ -69,7 +69,7 @@ final class Internet implements Server
         }
 
         /** @var Maybe<Connection> */
-        return Maybe::just(new Connection\Stream($socket));
+        return Maybe::just(Connection\Stream::of($socket));
     }
 
     /**
