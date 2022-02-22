@@ -8,11 +8,10 @@ use Innmind\Socket\{
     Server,
     Server\Connection,
     Internet\Transport,
-    Exception\SocketNotSeekable,
 };
 use Innmind\Stream\{
     Stream\Position,
-    Exception\UnknownSize
+    PositionNotSeekable,
 };
 use Innmind\IP\IPv4;
 use Innmind\Url\Authority\Port;
@@ -25,10 +24,13 @@ class InternetTest extends TestCase
 
     public function setUp(): void
     {
-        $this->server = new Internet(
+        $this->server = Internet::of(
             Transport::tcp(),
             IPv4::of('127.0.0.1'),
-            Port::of(1234)
+            Port::of(1234),
+        )->match(
+            static fn($server) => $server,
+            static fn() => null,
         );
     }
 
@@ -47,7 +49,10 @@ class InternetTest extends TestCase
         $process = new Process(['php', 'fixtures/tcpClient.php']);
         $process->run();
 
-        $this->assertInstanceOf(Connection::class, $this->server->accept());
+        $this->assertInstanceOf(Connection::class, $this->server->accept()->match(
+            static fn($connection) => $connection,
+            static fn() => null,
+        ));
     }
 
     public function testResource()
@@ -59,7 +64,10 @@ class InternetTest extends TestCase
     public function testClose()
     {
         $this->assertFalse($this->server->closed());
-        $this->assertNull($this->server->close());
+        $this->assertNull($this->server->close()->match(
+            static fn() => null,
+            static fn($e) => $e,
+        ));
         $this->assertTrue($this->server->closed());
     }
 
@@ -69,18 +77,26 @@ class InternetTest extends TestCase
         $this->assertSame(0, $this->server->position()->toInt());
     }
 
-    public function testThrowWhenSeeking()
+    public function testReturnErrorWhenSeeking()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->server->seek(new Position(0));
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->server->seek(new Position(0))->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
-    public function testThrowWhenRewinding()
+    public function testReturnErrorWhenRewinding()
     {
-        $this->expectException(SocketNotSeekable::class);
-
-        $this->server->rewind();
+        $this->assertInstanceOf(
+            PositionNotSeekable::class,
+            $this->server->rewind()->match(
+                static fn() => null,
+                static fn($e) => $e,
+            ),
+        );
     }
 
     public function testEnd()
@@ -90,13 +106,9 @@ class InternetTest extends TestCase
 
     public function testSize()
     {
-        $this->assertFalse($this->server->knowsSize());
-
-        try {
-            $this->server->size();
-            $this->fail('it should throw');
-        } catch (UnknownSize $e) {
-            $this->assertTrue(true);
-        }
+        $this->assertFalse($this->server->size()->match(
+            static fn() => true,
+            static fn() => false,
+        ));
     }
 }

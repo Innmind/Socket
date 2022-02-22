@@ -10,7 +10,7 @@ final class TransportNotSupportedByTheSystem extends RuntimeException
         parent::__construct(\sprintf(
             '%s not supported (allowed: %s)',
             $transport,
-            \implode(', ', $allowed)
+            \implode(', ', $allowed),
         ));
     }
 }

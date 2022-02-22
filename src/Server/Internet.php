@@ -6,19 +6,20 @@ namespace Innmind\Socket\Server;
 use Innmind\Socket\{
     Server,
     Internet\Transport,
-    Exception\FailedToOpenSocket,
-    Exception\FailedAcceptingIncomingConnection,
-    Exception\SocketNotSeekable
 };
 use Innmind\Stream\{
     Stream\Stream,
     Stream\Position,
     Stream\Size,
     Stream\Position\Mode,
-    Exception\UnknownSize,
+    PositionNotSeekable,
 };
 use Innmind\IP\IP;
 use Innmind\Url\Authority\Port;
+use Innmind\Immutable\{
+    Maybe,
+    Either,
+};
 
 final class Internet implements Server
 {
@@ -26,11 +27,23 @@ final class Internet implements Server
     private $resource;
     private Stream $stream;
 
-    public function __construct(
+    /**
+     * @param resource $socket
+     */
+    private function __construct($socket)
+    {
+        $this->resource = $socket;
+        $this->stream = Stream::of($socket);
+    }
+
+    /**
+     * @return Maybe<self>
+     */
+    public static function of(
         Transport $transport,
         IP $ip,
-        Port $port
-    ) {
+        Port $port,
+    ): Maybe {
         $socket = @\stream_socket_server(\sprintf(
             '%s://%s:%s',
             $transport->toString(),
@@ -39,46 +52,42 @@ final class Internet implements Server
         ));
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedToOpenSocket(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<self> */
+            return Maybe::nothing();
         }
 
-        $this->resource = $socket;
-        $this->stream = new Stream($socket);
+        return Maybe::just(new self($socket));
     }
 
-    public function accept(): Connection
+    public function accept(): Maybe
     {
         $socket = @\stream_socket_accept($this->resource());
 
         if ($socket === false) {
-            /** @var array{file: string, line: int, message: string, type: int} */
-            $error = \error_get_last();
-
-            throw new FailedAcceptingIncomingConnection(
-                $error['message'],
-                $error['type'],
-            );
+            /** @var Maybe<Connection> */
+            return Maybe::nothing();
         }
 
-        return new Connection\Stream($socket);
+        /** @var Maybe<Connection> */
+        return Maybe::just(Connection\Stream::of($socket));
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function resource()
     {
         return $this->resource;
     }
 
-    public function close(): void
+    public function close(): Either
     {
-        $this->stream->close();
+        return $this->stream->close();
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function closed(): bool
     {
         return $this->stream->closed();
@@ -89,28 +98,30 @@ final class Internet implements Server
         return $this->stream->position();
     }
 
-    public function seek(Position $position, Mode $mode = null): void
+    public function seek(Position $position, Mode $mode = null): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
-    public function rewind(): void
+    public function rewind(): Either
     {
-        throw new SocketNotSeekable;
+        return Either::left(new PositionNotSeekable);
     }
 
+    /**
+     * @psalm-mutation-free
+     */
     public function end(): bool
     {
         return $this->stream->end();
     }
 
-    public function size(): Size
+    /**
+     * @psalm-mutation-free
+     */
+    public function size(): Maybe
     {
-        throw new UnknownSize;
-    }
-
-    public function knowsSize(): bool
-    {
-        return false;
+        /** @var Maybe<Size> */
+        return Maybe::nothing();
     }
 }
