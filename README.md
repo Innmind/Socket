@@ -26,7 +26,10 @@ use Innmind\Socket\{
 use Innmind\TimeContinuum\Earth\ElapsedPeriod;
 use Innmind\Stream\Watch\Select;
 
-$server = Unix::recoverable(Address::of('/tmp/my-socket'));
+$server = Unix::recoverable(Address::of('/tmp/my-socket'))->match(
+    static fn($server) => $server,
+    static fn() => throw new \RuntimeException('Unable to create socket'),
+);
 $select = Select::timeoutAfter(new ElapsedPeriod(100))
     ->forRead($server);
 
@@ -51,7 +54,10 @@ use Innmind\Socket\{
     Address\Unix as Address,
 };
 
-$client = new Client(Address::of('/tmp/my-socket'));
+$client = Unix::of(Address::of('/tmp/my-socket'))->match(
+    static fn($client) => $client,
+    static fn() => throw new \RuntimeException('Unable to connect to socket'),
+);
 $client->write(Str::of('hello there!'))->match(
     static fn($client) => $continueToDoSomething($client),
     static fn($error) => null, // do something else when it failed to write to the socket
@@ -74,7 +80,7 @@ use Innmind\Socket\{
 use Innmind\IP\IPv4;
 use Innmind\Url\Authority\Port;
 
-$server = new Internet(
+$server = Internet::of(
     Transport::tcp(),
     IPv4::of('127.0.0.1'),
     Port::of(80),
@@ -91,7 +97,7 @@ use Innmind\Socket\{
 };
 use Innmind\Url\Url;
 
-$client = new Client(
+$client = Internet::of(
     Transport::tcp(),
     Url::of('//127.0.0.1:80')->authority(),
 );
