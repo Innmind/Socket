@@ -3,9 +3,11 @@ declare(strict_types = 1);
 
 namespace Innmind\Socket\Address;
 
-use Innmind\Socket\Exception\DirectoryNotFound;
 use Innmind\Url\Path;
 
+/**
+ * @psalm-immutable
+ */
 final class Unix
 {
     private string $path;
@@ -14,10 +16,6 @@ final class Unix
     {
         /** @var array{dirname: string, filename: string} */
         $parts = \pathinfo($path->toString());
-
-        if (!\is_dir($parts['dirname'])) {
-            throw new DirectoryNotFound;
-        }
 
         $this->path = \sprintf(
             '%s/%s.sock',
