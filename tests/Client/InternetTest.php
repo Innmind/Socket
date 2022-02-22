@@ -203,7 +203,7 @@ class InternetTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('127.0.0.1:1234', $this->client->toString()->match(
+        $this->assertNull($this->client->toString()->match(
             static fn($address) => $address,
             static fn() => null,
         ));

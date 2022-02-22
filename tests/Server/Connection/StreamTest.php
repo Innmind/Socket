@@ -147,7 +147,7 @@ class StreamTest extends TestCase
         \stream_socket_client('unix:///tmp/foo.sock');
         $stream = new Stream(\stream_socket_accept($server->resource()));
 
-        $this->assertSame('/tmp/foo.sock', $stream->toString()->match(
+        $this->assertNull($stream->toString()->match(
             static fn($text) => $text,
             static fn() => null,
         ));

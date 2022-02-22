@@ -179,7 +179,7 @@ class UnixTest extends TestCase
 
     public function testStringCast()
     {
-        $this->assertSame('/tmp/foo.sock', $this->client->toString()->match(
+        $this->assertNull($this->client->toString()->match(
             static fn($name) => $name,
             static fn() => null,
         ));

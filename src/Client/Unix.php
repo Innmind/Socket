@@ -26,7 +26,6 @@ use Innmind\Immutable\{
 final class Unix implements Client
 {
     private Stream\Bidirectional $stream;
-    private string $name;
 
     /**
      * @param resource $socket
@@ -34,7 +33,6 @@ final class Unix implements Client
     private function __construct($socket)
     {
         $this->stream = Stream\Bidirectional::of($socket);
-        $this->name = \stream_socket_get_name($socket, true);
     }
 
     /**
@@ -138,6 +136,7 @@ final class Unix implements Client
 
     public function toString(): Maybe
     {
-        return Maybe::just($this->name);
+        /** @var Maybe<string> */
+        return Maybe::nothing();
     }
 }
