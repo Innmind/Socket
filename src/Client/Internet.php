@@ -88,18 +88,6 @@ final class Internet implements Client
      */
     public function closed(): bool
     {
-        if ($this->stream->closed()) {
-            return true;
-        }
-
-        if ($this->stream->end()) {
-            /** @psalm-suppress ImpureMethodCall Todo find a way to avoid this mutation */
-            return $this->stream->close()->match(
-                static fn() => true,
-                static fn() => false,
-            );
-        }
-
         return $this->stream->closed();
     }
 

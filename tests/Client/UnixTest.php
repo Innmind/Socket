@@ -185,7 +185,7 @@ class UnixTest extends TestCase
         ));
     }
 
-    public function testClosedWhenServerConnectionClosed()
+    public function testEndWhenServerConnectionClosed()
     {
         $this->assertFalse($this->client->closed());
         $connection = $this->server->accept()->match(
@@ -194,6 +194,6 @@ class UnixTest extends TestCase
         );
         $this->assertFalse($this->client->closed());
         $connection->close();
-        $this->assertTrue($this->client->closed());
+        $this->assertTrue($this->client->end());
     }
 }
