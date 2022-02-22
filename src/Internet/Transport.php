@@ -66,6 +66,8 @@ final class Transport
     }
 
     /**
+     * @psalm-mutation-free
+     *
      * @param scalar|array $value
      */
     public function withOption(string $key, $value): self
