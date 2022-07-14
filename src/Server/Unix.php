@@ -18,6 +18,7 @@ use Innmind\Immutable\{
     Maybe,
     Either,
     SideEffect,
+    Str,
 };
 
 final class Unix implements Server
@@ -141,6 +142,24 @@ final class Unix implements Server
     public function size(): Maybe
     {
         /** @var Maybe<Size> */
+        return Maybe::nothing();
+    }
+
+    public function read(int $length = null): Maybe
+    {
+        /** @var Maybe<Str> */
+        return Maybe::nothing();
+    }
+
+    public function readLine(): Maybe
+    {
+        /** @var Maybe<Str> */
+        return Maybe::nothing();
+    }
+
+    public function toString(): Maybe
+    {
+        /** @var Maybe<string> */
         return Maybe::nothing();
     }
 }

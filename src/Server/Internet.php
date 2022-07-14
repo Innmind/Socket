@@ -19,6 +19,7 @@ use Innmind\Url\Authority\Port;
 use Innmind\Immutable\{
     Maybe,
     Either,
+    Str,
 };
 
 final class Internet implements Server
@@ -122,6 +123,24 @@ final class Internet implements Server
     public function size(): Maybe
     {
         /** @var Maybe<Size> */
+        return Maybe::nothing();
+    }
+
+    public function read(int $length = null): Maybe
+    {
+        /** @var Maybe<Str> */
+        return Maybe::nothing();
+    }
+
+    public function readLine(): Maybe
+    {
+        /** @var Maybe<Str> */
+        return Maybe::nothing();
+    }
+
+    public function toString(): Maybe
+    {
+        /** @var Maybe<string> */
         return Maybe::nothing();
     }
 }
