@@ -1,5 +1,11 @@
 # Changelog
 
+## [Unreleased]
+
+### Fixed
+
+- `Innmind\Socket\Server` not usable with `Innmind\Stream\Watch` as it was not `Readable`
+
 ## 4.0.0 - 2022-02-22
 
 ### Changed
