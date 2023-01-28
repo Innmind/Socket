@@ -16,7 +16,7 @@
     },
     "require": {
         "php": "~8.1",
-        "innmind/stream": "~3.0",
+        "innmind/stream": "dev-capabilities",
         "innmind/immutable": "~4.0",
         "innmind/ip": "~3.0",
         "innmind/url": "~4.0"
