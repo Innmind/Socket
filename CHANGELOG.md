@@ -1,5 +1,11 @@
 # Changelog
 
+## 6.0.0 - 2023-01-29
+
+### Changed
+
+- `innmind/stream:~4.0` is now required
+
 ## 5.0.0 - 2022-07-14
 
 ### Fixed
