@@ -22,7 +22,7 @@ class UnixTest extends TestCase
     public function testInterface()
     {
         @\unlink('/tmp/foo.sock');
-        $unix = Unix::of(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $unix = Unix::of(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket,
             static fn() => null,
         );
@@ -50,7 +50,7 @@ class UnixTest extends TestCase
     {
         $this->assertInstanceOf(
             Unix::class,
-            Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+            Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
                 static fn($socket) => $socket,
                 static fn() => null,
             ),
@@ -65,7 +65,7 @@ class UnixTest extends TestCase
 
         $this->assertInstanceOf(
             Unix::class,
-            Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+            Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
                 static fn($socket) => $socket,
                 static fn() => null,
             ),
@@ -74,7 +74,7 @@ class UnixTest extends TestCase
 
     public function testResource()
     {
-        $unix = Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket,
             static fn() => null,
         );
@@ -85,24 +85,24 @@ class UnixTest extends TestCase
 
     public function testClose()
     {
-        $unix = Unix::recoverable(new Address(Path::of($path = \tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket,
             static fn() => null,
         );
 
         $this->assertFalse($unix->closed());
-        $this->assertFileExists($path);
+        $this->assertFileExists('/tmp/foo.sock');
         $this->assertNull($unix->close()->match(
             static fn() => null,
             static fn($e) => $e,
         ));
         $this->assertTrue($unix->closed());
-        $this->assertFileDoesNotExist($path);
+        $this->assertFileDoesNotExist('/tmp/foo.sock');
     }
 
     public function testPosition()
     {
-        $unix = Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket,
             static fn() => null,
         );
@@ -113,7 +113,7 @@ class UnixTest extends TestCase
 
     public function testReturnErrorWhenSeeking()
     {
-        $either = Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $either = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket->seek(new Position(0)),
             static fn() => null,
         );
@@ -129,7 +129,7 @@ class UnixTest extends TestCase
 
     public function testReturnErrorWhenRewinding()
     {
-        $either = Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $either = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket->rewind(),
             static fn() => null,
         );
@@ -145,7 +145,7 @@ class UnixTest extends TestCase
 
     public function testEnd()
     {
-        $unix = Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket,
             static fn() => null,
         );
@@ -155,7 +155,7 @@ class UnixTest extends TestCase
 
     public function testSize()
     {
-        $unix = Unix::recoverable(new Address(Path::of(\tempnam(\sys_get_temp_dir(), 'innmind'))))->match(
+        $unix = Unix::recoverable(new Address(Path::of('/tmp/foo')))->match(
             static fn($socket) => $socket,
             static fn() => null,
         );
